@@ -112,6 +112,7 @@ function initialiserRefsDOM() {
   
   // Pseudo
   DOM.inputPseudo = document.getElementById('input-pseudo');
+  DOM.btnValiderPseudo = document.getElementById('btn-valider-pseudo');
   DOM.pseudoAdverse = document.getElementById('pseudo-adverse');
   
   // Décompte
@@ -142,6 +143,23 @@ function chargerPseudo() {
       DOM.inputPseudo.value = saved;
     }
   } catch(e) {}
+}
+
+/**
+ * Valide le pseudo : le sauvegarde et donne un feedback visuel.
+ */
+function validerPseudo() {
+  const pseudo = obtenirPseudo();
+  sauvegarderPseudo();
+  if (DOM.btnValiderPseudo) {
+    DOM.btnValiderPseudo.classList.add('valide');
+    DOM.btnValiderPseudo.textContent = '✅';
+    setTimeout(() => {
+      DOM.btnValiderPseudo.classList.remove('valide');
+    }, 2000);
+  }
+  log('👤 Pseudo validé :', pseudo);
+  return pseudo;
 }
 
 // =================================================================
@@ -994,13 +1012,7 @@ function recevoirMessage(data) {
       break;
       
     case 'PRET':
-      log('📩 Adversaire prêt ! Lancement du décompte...');
-      // L'adversaire peut envoyer son pseudo avec PRET
-      if (data.pseudo) {
-        etat.pseudoAdverseNom = data.pseudo;
-        mettreAJourPseudos();
-      }
-      lancerDecompte();
+      log('📩 PRET ignoré (ancien message, doublon)');
       break;
       
     case 'SYNC_JAUGE':
@@ -1184,19 +1196,16 @@ function demarrerPartieMulti() {
   decoEl.style.display = '';
   decoEl.classList.remove('masquee');
   
-  // Sauvegarder notre pseudo
-  sauvegarderPseudo();
+  // Mettre à jour l'affichage du pseudo
   mettreAJourPseudos();
   
-  // Annoncer à l'adversaire qu'on est prêt (avec notre pseudo)
-  if (etat.connexion) {
-    log('📤 Envoi signal PRET à l\'adversaire...');
-    envoyerMessage({
-      type: 'PRET',
-      pseudo: etat.pseudoLocal,
-    });
+  // L'hôte lance le décompte directement (l'invité le lance via LANCER)
+  if (etat.mode !== 'multi-hote') {
+    // L'invité attend le signal LANCER de l'hôte
+    log('⏳ Invité en attente du signal LANCER...');
   } else {
-    // Fallback (hors ligne, ne devrait pas arriver)
+    // L'hôte commence le décompte (le message LANCER est envoyé dans recevoirMessage/BONJOUR)
+    log('⏳ Hôte prêt, début du décompte...');
     lancerDecompte();
   }
 }
@@ -1343,13 +1352,25 @@ document.addEventListener('DOMContentLoaded', () => {
   initialiserRefsDOM();
   
   // ---- Écran accueil ----
+  // Valider le pseudo
+  DOM.btnValiderPseudo.addEventListener('click', validerPseudo);
+  
+  // Valider le pseudo en appuyant sur Entrée dans le champ
+  DOM.inputPseudo.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      validerPseudo();
+    }
+  });
+  
   // Créer une partie
   DOM.btnCreer.addEventListener('click', () => {
+    validerPseudo(); // Sauvegarder le pseudo avant
     creerPartie();
   });
   
   // Rejoindre une partie
   DOM.btnRejoindre.addEventListener('click', () => {
+    validerPseudo(); // Sauvegarder le pseudo avant
     etat.mode = 'multi-invite';
     DOM.codeLabel.textContent = '🔑 Entrer le code :';
     DOM.codeAffiche.textContent = '';

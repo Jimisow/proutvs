@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>PROUT MANAGER 🚽</title>
+  
+  <!-- Police rétro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  
+  <!-- PeerJS via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" defer></script>
+  
+  <!-- Nos scripts (cache-busting avec timestamp) -->
+  <script src="bot.js?ts=2" defer></script>
+  <script src="game.js?ts=2" defer></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💨</text></svg>" />
+</head>
+<body>
+  <!-- ============================================================ -->
+  <!-- ÉCRAN D'ACCUEIL / CONNEXION                                   -->
+  <!-- ============================================================ -->
+  <div id="screen-accueil" class="screen active">
+    <!-- Titre en image PNG (par-dessus le cadre) -->
+    <img src="images/titre.png" alt="PROUT MANAGER" class="titre-image" />
+    
+    <div class="accueil-container">
+      <p class="sous-titre">Le combat ultime de pets !</p>
+      <div class="accueil-boutons">
+        <!-- Mode multijoueur -->
+        <button id="btn-creer" class="btn btn-accueil btn-marron">
+          🎮 Créer une partie
+        </button>
+        <button id="btn-rejoindre" class="btn btn-accueil btn-kaki">
+          🔗 Rejoindre une partie
+        </button>
+        
+        <!-- Séparateur -->
+        <div class="separateur-ou">
+          <span>— OU —</span>
+        </div>
+        
+        <!-- Mode solo IA -->
+        <button id="btn-solo-ia" class="btn btn-accueil btn-dore">
+          🤖 Jouer contre l'IA
+        </button>
+      </div>
+      
+      <!-- Zone code (affichée après clic sur Créer ou Rejoindre) -->
+      <div id="zone-code" class="zone-code masquee">
+        <p id="code-label" class="code-label">Code de la partie :</p>
+        <div id="code-affiche" class="code-affiche"></div>
+        <div id="code-input-group" class="code-input-group masquee">
+          <input type="text" id="code-input" maxlength="6" placeholder="XXXXXX" class="code-input" autocomplete="off" />
+          <button id="btn-valider-code" class="btn btn-petit btn-kaki">✅ Rejoindre</button>
+        </div>
+        <button id="btn-annuler-code" class="btn btn-annuler">↩️ Annuler</button>
+        <div id="attente-msg" class="attente-msg masquee">
+          <span class="attente-spinner">⏳</span>
+          <span>En attente d'un adversaire...</span>
+        </div>
+      </div>
+      
+      <!-- Message d'erreur / statut -->
+      <div id="status-msg" class="status-msg masquee"></div>
+    </div>
+    
+    <!-- Footer crédits (optionnel) -->
+    <footer class="footer-accueil">
+      <span>💨 Fait avec amour et gaz 💨</span>
+    </footer>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ÉCRAN DE JEU — NOUVEAU DESIGN : PERSONNAGE PLEIN ÉCRAN      -->
+  <!-- ============================================================ -->
+  <div id="screen-jeu" class="screen">
+    
+    <!-- === HUD : infos adversaire (petit encadré en haut) === -->
+    <div class="hud-adverse" id="hud-adverse">
+      <div class="hud-adverse-header">
+        <span id="pseudo-adverse">👤 ADVERSAIRE</span>
+        <span class="hud-conscience-adv">
+          🧠 <span id="conscience-adverse-text">100%</span>
+        </span>
+      </div>
+      <div class="barre-fond-conscience hud-barre-conscience">
+        <div id="conscience-adverse-bar" class="barre-conscience-remplie" style="width:100%; background:#2E7D32;"></div>
+      </div>
+      <div class="hud-jauge-adv">
+        💨 Jauge: <span id="jauge-adverse-text">0%</span>
+      </div>
+      <div class="barre-fond-jauge hud-barre-jauge">
+        <div id="jauge-adverse-bar" class="barre-jauge-remplie" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- === CONTENEUR PRINCIPAL (centre tout verticalement) === -->
+    <div class="ecran-jeu-conteneur">
+      <div class="groupe-jeu">
+        
+        <!-- Zone du personnage (carré, prend la largeur) -->
+        <div class="zone-perso">
+          <img id="fondJeu" class="fond-jeu" src="images/fond.png" alt="Fond" />
+          <img id="characterImg" class="character-png" src="images/character_idle.png" alt="Toi" />
+          <img id="personnage-local" class="personnage-svg" src="img/personnage-normal.svg" alt="Toi" style="display:none;" />
+          <!-- Pile d'icônes (max 4) -->
+          <div id="pile-icones" class="pile-icones"></div>
+          <!-- Bulle de parole -->
+          <div id="bulle-local" class="bulle-parole-plein-ecran masquee">💨</div>
+        </div>
+
+        <!-- UI du bas (juste sous l'image) -->
+        <div class="ui-bas">
+          <div class="barres-superposees">
+            <div class="barre-conscience-superposee">
+              <div class="barre-label-conscience">
+                <span><span class="barre-icon">🧠</span> Conscience</span>
+                <span id="conscience-local-text">100%</span>
+              </div>
+              <div class="barre-fond-conscience">
+                <div id="conscience-local-bar" class="barre-conscience-remplie" style="width:100%; background:#2E7D32;"></div>
+              </div>
+            </div>
+            <div class="barre-jauge-superposee">
+              <div class="barre-label-jauge">
+                <span><span class="barre-icon">💨</span> Jauge Prout</span>
+                <span id="jauge-local-text">0%</span>
+              </div>
+              <div class="barre-fond-jauge">
+                <div id="jauge-local-bar" class="barre-jauge-remplie" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+          <button id="btn-prout" class="btn btn-prout-plein-ecran">💨 PROUT! 💨</button>
+          <div class="bonus-plein-ecran">
+            <button id="bonus-1" class="btn btn-bonus-petit" disabled>
+              <span class="bonus-cout">25%</span>
+              <span class="bonus-nom">💨 Pet léger</span>
+              <span class="bonus-degats">-5%</span>
+            </button>
+            <button id="bonus-2" class="btn btn-bonus-petit" disabled>
+              <span class="bonus-cout">50%</span>
+              <span class="bonus-nom">💨🌪️ Pet toxique</span>
+              <span class="bonus-degats">-12%</span>
+            </button>
+            <button id="bonus-3" class="btn btn-bonus-petit" disabled>
+              <span class="bonus-cout">75%</span>
+              <span class="bonus-nom">💣💨 Mégapet nucléaire</span>
+              <span class="bonus-degats">-25%</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === BOUTONS FLOTTANTS (quit + debug) === -->
+    <button id="btn-quitter" class="btn-flottant btn-flottant-quit" title="Quitter la partie">✕</button>
+    <button id="btn-debug" class="btn-flottant btn-flottant-debug" title="Mode debug">🐛</button>
+
+    <!-- Zone notification d'attaque -->
+    <div id="notification-zone" class="notification-zone masquee">
+      <span id="notification-texte"></span>
+    </div>
+
+    <!-- Écran de fin de partie -->
+    <div id="ecran-fin" class="ecran-fin masquee">
+      <div class="fin-contenu">
+        <h2 id="fin-titre" class="fin-titre"></h2>
+        <p id="fin-sous-titre" class="fin-sous-titre"></p>
+        <button id="btn-rejouer" class="btn btn-accueil btn-marron">🔄 Rejouer</button>
+        <button id="btn-menu" class="btn btn-accueil btn-kaki">🏠 Menu principal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- OVERLAY DE CHARGEMENT (pour les transitions)                  -->
+  <!-- ============================================================ -->
+  <div id="overlay-chargement" class="overlay-chargement masquee">
+    <div class="chargement-spinner">💨</div>
+    <p>Connexion en cours...</p>
+  </div>
+</body>
+</html>

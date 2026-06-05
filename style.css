@@ -1,0 +1,1185 @@
+/* ================================================================ */
+/* PROUT MANAGER - Feuille de style principale                       */
+/* Thème : toilettes humoristique vintage Game Boy                   */
+/* Palettes : marrons, verts kaki, beige, doré                      */
+/* ================================================================ */
+
+/* ---- RESET & BASE ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Couleurs principales */
+  --couleur-marron-fonce: #3E2723;
+  --couleur-marron: #5D4037;
+  --couleur-marron-clair: #8D6E63;
+  --couleur-kaki-fonce: #6B8E23;
+  --couleur-kaki: #8FBC3B;
+  --couleur-kaki-clair: #B0D45A;
+  --couleur-beige: #D7CCC8;
+  --couleur-beige-clair: #EFEBE9;
+  --couleur-dore: #D4A017;
+  --couleur-dore-clair: #F0C75E;
+  --couleur-rouge: #C62828;
+  --couleur-vert: #2E7D32;
+  --couleur-gris: #757575;
+  --couleur-noir: #212121;
+  --couleur-blanc: #FFF8F0;
+
+  /* Polices */
+  --font-retro: 'Press Start 2P', 'Courier New', monospace;
+  --font-texte: 'Courier New', monospace;
+
+  /* Espacements */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+
+  /* Bordures */
+  --border-radius: 8px;
+  --border-épaisseur: 3px;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-texte);
+  background-color: var(--couleur-beige-clair);
+  color: var(--couleur-marron-fonce);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- ÉCRANS (screens) ---- */
+.screen {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* Hauteur dynamique mobile */
+  position: fixed;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ================================================================ */
+/* ÉCRAN D'ACCUEIL                                                   */
+/* ================================================================ */
+#screen-accueil {
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--couleur-beige) 0%, var(--couleur-beige-clair) 50%, var(--couleur-marron-clair) 100%);
+  padding: var(--space-md);
+  position: relative;
+}
+
+.accueil-container {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 130px var(--space-md) var(--space-lg) var(--space-md);
+  background: rgba(255, 248, 240, 0.85);
+  border: var(--border-épaisseur) solid var(--couleur-marron);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 32px rgba(62, 39, 35, 0.3);
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+
+
+.titre-image {
+  position: absolute;
+  top: 1%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(380px, 85vw);
+  height: auto;
+  image-rendering: auto;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.sous-titre {
+  font-family: var(--font-retro);
+  font-size: clamp(0.5rem, 2.5vw, 0.75rem);
+  color: var(--couleur-marron-clair);
+  text-align: center;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+/* ---- BOUTONS GÉNÉRAUX ---- */
+.btn {
+  font-family: var(--font-retro);
+  border: var(--border-épaisseur) solid var(--couleur-marron-fonce);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: clamp(0.5rem, 2.5vw, 0.75rem);
+  padding: var(--space-md) var(--space-lg);
+  min-height: 48px;
+  min-width: 48px;
+  box-shadow: 0 3px 0 var(--couleur-marron-fonce);
+}
+
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 var(--couleur-marron-fonce);
+}
+
+/* Variantes de couleurs */
+.btn-marron {
+  background: var(--couleur-marron);
+  color: var(--couleur-blanc);
+  border-color: var(--couleur-marron-fonce);
+}
+.btn-marron:hover:not(:disabled) {
+  background: var(--couleur-marron-fonce);
+}
+
+.btn-kaki {
+  background: var(--couleur-kaki);
+  color: var(--couleur-noir);
+  border-color: var(--couleur-kaki-fonce);
+}
+.btn-kaki:hover:not(:disabled) {
+  background: var(--couleur-kaki-fonce);
+  color: var(--couleur-blanc);
+}
+
+.btn-dore {
+  background: var(--couleur-dore);
+  color: var(--couleur-noir);
+  border-color: #B8860B;
+}
+.btn-dore:hover:not(:disabled) {
+  background: #B8860B;
+  color: var(--couleur-blanc);
+}
+
+.btn-rouge {
+  background: var(--couleur-rouge);
+  color: var(--couleur-blanc);
+  border-color: #8E0000;
+}
+
+.btn-gris {
+  background: var(--couleur-gris);
+  color: var(--couleur-blanc);
+  border-color: #424242;
+  font-size: 0.5rem;
+  padding: var(--space-sm) var(--space-sm);
+  min-height: 36px;
+  min-width: 36px;
+}
+
+.btn-petit {
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 36px;
+}
+
+.btn-annuler {
+  background: transparent;
+  color: var(--couleur-marron-clair);
+  border-color: var(--couleur-marron-clair);
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.btn-accueil {
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ---- ZONE CODE ---- */
+.zone-code {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--couleur-beige);
+  border-radius: var(--border-radius);
+  border: 2px solid var(--couleur-marron-clair);
+}
+
+.zone-code.masquee, .masquee {
+  display: none !important;
+}
+
+.code-label {
+  font-family: var(--font-retro);
+  font-size: clamp(0.45rem, 2vw, 0.65rem);
+  color: var(--couleur-marron-fonce);
+}
+
+.code-affiche {
+  font-family: var(--font-retro);
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  letter-spacing: 8px;
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--couleur-blanc);
+  border: 3px dashed var(--couleur-marron);
+  border-radius: var(--border-radius);
+  color: var(--couleur-marron-fonce);
+  min-width: 200px;
+  text-align: center;
+}
+
+.code-input-group {
+  display: flex;
+  gap: var(--space-sm);
+  width: 100%;
+  align-items: center;
+}
+
+.code-input {
+  font-family: var(--font-retro);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  letter-spacing: 6px;
+  text-align: center;
+  text-transform: uppercase;
+  padding: var(--space-sm);
+  border: var(--border-épaisseur) solid var(--couleur-marron);
+  border-radius: var(--border-radius);
+  background: var(--couleur-blanc);
+  color: var(--couleur-marron-fonce);
+  flex: 1;
+  min-height: 48px;
+  outline: none;
+}
+.code-input:focus {
+  border-color: var(--couleur-dore);
+  box-shadow: 0 0 0 2px var(--couleur-dore-clair);
+}
+
+.attente-msg {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-family: var(--font-retro);
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  color: var(--couleur-marron);
+  animation: pulse-attente 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-attente {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.attente-spinner {
+  font-size: 1.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- STATUS MESSAGE ---- */
+.status-msg {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius);
+  font-family: var(--font-retro);
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.status-msg.erreur {
+  background: #FFCDD2;
+  color: var(--couleur-rouge);
+  border: 2px solid var(--couleur-rouge);
+}
+
+.status-msg.succes {
+  background: #C8E6C9;
+  color: var(--couleur-vert);
+  border: 2px solid var(--couleur-vert);
+}
+
+.status-msg.info {
+  background: #BBDEFB;
+  color: #0D47A1;
+  border: 2px solid #0D47A1;
+}
+
+/* ---- SEPARATEUR ---- */
+.separateur-ou {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  font-family: var(--font-retro);
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  color: var(--couleur-marron-clair);
+  margin: var(--space-sm) 0;
+}
+.separateur-ou span {
+  padding: 0 var(--space-md);
+}
+
+/* ---- FOOTER ---- */
+.footer-accueil {
+  position: absolute;
+  bottom: var(--space-md);
+  font-size: clamp(0.35rem, 1.5vw, 0.5rem);
+  color: var(--couleur-marron-clair);
+  opacity: 0.7;
+  font-family: var(--font-retro);
+}
+
+/* ================================================================ */
+/* ÉCRAN DE JEU — NOUVEAU DESIGN : PLEIN ÉCRAN                     */
+/* ================================================================ */
+#screen-jeu {
+  background: #2C1810;
+  position: relative;
+  overflow: hidden;
+  will-change: transform; /* optimise les animations de shake */
+}
+
+/* ---- HUD ADVERSAIRE (infos en haut) ---- */
+.hud-adverse {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 50;
+  background: rgba(62, 39, 35, 0.88);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--couleur-dore);
+  color: var(--couleur-blanc);
+  font-family: var(--font-retro);
+  font-size: clamp(0.35rem, 1.8vw, 0.55rem);
+  backdrop-filter: blur(4px);
+  max-width: 420px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.hud-adverse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.hud-conscience-adv {
+  color: var(--couleur-kaki-clair);
+  font-weight: bold;
+}
+
+/* Barre de conscience adverse PLUS GRANDE et visible */
+.hud-barre-conscience {
+  height: clamp(12px, 2.5vw, 20px) !important;
+  border: 2px solid var(--couleur-dore-clair) !important;
+  border-radius: 8px !important;
+  background: rgba(0,0,0,0.3) !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
+  margin-bottom: 6px;
+}
+
+/* Barre de jauge adverse (petite) */
+.hud-barre-jauge {
+  height: clamp(6px, 1.2vw, 10px) !important;
+  border: 1px solid var(--couleur-marron-clair) !important;
+  border-radius: 4px !important;
+  background: rgba(0,0,0,0.2) !important;
+}
+
+.hud-jauge-adv {
+  font-size: clamp(0.3rem, 1.5vw, 0.45rem);
+  color: var(--couleur-dore-clair);
+  margin-top: 2px;
+  margin-bottom: 3px;
+}
+
+/* ---- CONTENEUR PRINCIPAL DE L'ÉCRAN DE JEU ---- */
+.ecran-jeu-conteneur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;      /* centre verticalement */
+  justify-content: center;  /* centre horizontalement */
+  z-index: 1;
+}
+
+/* Groupe : zone perso + UI bas (ensemble, centrés verticalement) */
+.groupe-jeu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(512px, 100vw);
+  max-height: 100vh;
+}
+
+/* Zone du personnage : carré 1:1 qui prend la largeur dispo */
+.zone-perso {
+  position: relative;
+  width: 100%;
+  /* Hauteur = largeur (carré), mais limité à la place restante */
+  aspect-ratio: 1 / 1;
+  max-height: calc(100vh - 200px); /* réserve ~200px pour l'UI bas */
+  overflow: hidden;
+}
+
+/* Fond de la zone personnage */
+.fond-jeu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Personnage PNG */
+.character-png {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 2;
+  image-rendering: auto;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Animation de fondu pour le changement d'image */
+.character-png.fade-change {
+  animation: fondu-expression 0.3s ease;
+}
+
+/* Animation "shake" pour le perso PNG */
+.character-png.shake {
+  animation: shake-plein 0.4s ease-in-out;
+}
+
+@keyframes shake-plein {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-12px) rotate(-5deg); }
+  40% { transform: translateX(12px) rotate(5deg); }
+  60% { transform: translateX(-8px) rotate(-3deg); }
+  80% { transform: translateX(8px) rotate(3deg); }
+}
+
+/* Animation attaque pour le perso PNG */
+.character-png.attack {
+  animation: attaque-plein 0.5s ease-out;
+}
+
+@keyframes attaque-plein {
+  0% { transform: scale(1) translateX(0); }
+  30% { transform: scale(1.08) translateX(15px) rotate(5deg); }
+  60% { transform: scale(1.03) translateX(-5px); }
+  100% { transform: scale(1) translateX(0); }
+}
+
+/* État mort PNG */
+.character-png.dead {
+  filter: grayscale(100%) brightness(0.4);
+  transform: scale(0.7) rotate(90deg);
+  opacity: 0.5;
+  transition: all 1s ease;
+}
+
+/* ---- UI BAS (directement sous la zone perso) ---- */
+.ui-bas {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 8px max(env(safe-area-inset-bottom, 4px), 6px) 8px;
+  z-index: 10;
+}
+
+/* Barres dans l'UI du bas */
+.ui-bas .barres-superposees {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+/* Bouton PROUT dans l'UI du bas */
+.ui-bas .btn-prout-plein-ecran {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  min-height: 42px;
+  padding: 8px 12px;
+}
+
+/* Bonus dans l'UI du bas */
+.ui-bas .bonus-plein-ecran {
+  margin-top: 4px;
+}
+
+/* Transition d'expression (pour l'ancien SVG, conservé) */
+.personnage-svg.transition-expression {
+  animation: fondu-expression 0.4s ease;
+}
+
+/* Bulle de parole */
+.bulle-parole-plein-ecran {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--couleur-blanc);
+  border: 3px solid var(--couleur-marron);
+  border-radius: 50%;
+  width: clamp(36px, 10vw, 60px);
+  height: clamp(36px, 10vw, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 5vw, 2rem);
+  font-family: var(--font-retro);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 20;
+  animation: bulle-apparition 0.3s ease-out;
+  pointer-events: none;
+}
+
+.bulle-parole-plein-ecran.masquee {
+  display: none;
+}
+
+/* ---- PILE D'ICÔNES (événements, max 3) ---- */
+.pile-icones {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column; /* du haut vers le bas */
+  gap: 4px;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.icone-evenement {
+  background: var(--couleur-blanc);
+  border: 2px solid var(--couleur-marron);
+  border-radius: 50%;
+  width: clamp(32px, 8vw, 48px);
+  height: clamp(32px, 8vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 4vw, 1.8rem);
+  font-family: var(--font-retro);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  animation: icone-apparition 0.3s ease-out;
+}
+
+.icone-evenement.sortie {
+  animation: icone-disparition 0.3s ease-out forwards;
+}
+
+@keyframes icone-apparition {
+  0% { opacity: 0; transform: scale(0) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes icone-disparition {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.5) translateY(-10px); }
+}
+
+/* ---- BARRES SUPERPOSÉES (en bas du personnage) ---- */
+.barres-superposees {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* === BARRE DE CONSCIENCE (séparée, voyante) === */
+.barre-conscience-superposee {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(62, 39, 35, 0.15);
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--couleur-marron-clair);
+}
+
+.barre-label-conscience {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-retro);
+  font-size: clamp(0.45rem, 2.2vw, 0.65rem);
+  color: var(--couleur-blanc);
+  text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.barre-fond-conscience {
+  height: clamp(18px, 4vw, 28px);
+  border: 2px solid var(--couleur-marron);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.15);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+/* Remplissage de la barre de conscience */
+.barre-conscience-remplie {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Effet de brillance sur la barre de vie */
+.barre-conscience-remplie::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px 4px 0 0;
+}
+
+/* === BARRE DE JAUGE PROUT (avec fumée !) === */
+.barre-jauge-superposee {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(215, 204, 200, 0.6);
+  padding: 6px 8px 4px 8px;
+  border-radius: 10px;
+  border: 2px dashed var(--couleur-marron-clair);
+}
+
+.barre-label-jauge {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-retro);
+  font-size: clamp(0.45rem, 2.2vw, 0.65rem);
+  color: var(--couleur-blanc);
+  text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+.barre-fond-jauge {
+  height: clamp(16px, 3.5vw, 24px);
+  border: 2px solid var(--couleur-marron);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(62, 39, 35, 0.1);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+/* Remplissage de la jauge : dégradé marron + animation fumée */
+.barre-jauge-remplie {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    #A67B5B 0%, 
+    #8D6E63 20%, 
+    #D4A017 50%, 
+    #F0C75E 75%, 
+    #FFD54F 100%
+  );
+}
+
+/* Effet de brillance */
+.barre-jauge-remplie::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px 4px 0 0;
+}
+
+/* +++ PARTICULES DE FUMÉE SUR LA JAUGE +++ */
+.barre-jauge-remplie::before {
+  content: '☁️☁️☁️';
+  position: absolute;
+  top: -8px;
+  right: 0;
+  font-size: 10px;
+  letter-spacing: 4px;
+  opacity: 0.6;
+  animation: fumee-jauge 2s ease-in-out infinite;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@keyframes fumee-jauge {
+  0% { transform: translateY(0) translateX(0); opacity: 0.4; }
+  25% { transform: translateY(-4px) translateX(-2px); opacity: 0.6; }
+  50% { transform: translateY(-8px) translateX(-4px); opacity: 0.3; }
+  75% { transform: translateY(-4px) translateX(-8px); opacity: 0.6; }
+  100% { transform: translateY(0) translateX(-12px); opacity: 0.4; }
+}
+
+/* Animation de "bouillonnement" au-dessus de la jauge */
+@keyframes bouillon-jauge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.barre-jauge-remplie.active {
+  animation: bouillon-jauge 0.6s ease-in-out;
+}
+
+/* Pastille d'icône pour différencier les barres */
+.barre-icon {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* ---- BOUTON PROUT PLEIN ÉCRAN ---- */
+.btn-prout-plein-ecran {
+  width: 100%;
+  max-width: 500px;
+  font-family: var(--font-retro);
+  font-size: clamp(1rem, 5vw, 1.8rem);
+  padding: 14px 12px;
+  min-height: 54px;
+  background: linear-gradient(135deg, var(--couleur-marron), var(--couleur-marron-fonce));
+  color: var(--couleur-dore-clair);
+  border: 3px solid var(--couleur-dore);
+  border-radius: 12px;
+  box-shadow: 0 6px 0 var(--couleur-marron-fonce), 0 8px 20px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.08s ease;
+  touch-action: manipulation;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+  letter-spacing: 3px;
+  margin-top: 6px;
+}
+
+.btn-prout-plein-ecran:active {
+  transform: scale(0.95) translateY(4px);
+  box-shadow: 0 2px 0 var(--couleur-marron-fonce), 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* ---- BONUS PLEIN ÉCRAN (en bas) ---- */
+.bonus-plein-ecran {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 6px;
+}
+
+.btn-bonus-petit {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 2px;
+  min-height: 44px;
+  border-radius: 6px;
+  font-family: var(--font-retro);
+  background: rgba(255, 248, 240, 0.8);
+  color: var(--couleur-marron-fonce);
+  border: 2px solid var(--couleur-marron-clair);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 0 var(--couleur-marron-clair);
+  touch-action: manipulation;
+}
+
+.btn-bonus-petit:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 0 var(--couleur-marron-clair);
+}
+
+.btn-bonus-petit:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.btn-bonus-petit:not(:disabled) {
+  animation: glow-bonus 1.5s ease-in-out infinite;
+}
+
+/* ---- BOUTONS FLOTTANTS ---- */
+.btn-flottant {
+  position: fixed;
+  z-index: 60;
+  border: 2px solid var(--couleur-marron-fonce);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  width: clamp(36px, 9vw, 48px);
+  height: clamp(36px, 9vw, 48px);
+  background: var(--couleur-blanc);
+}
+
+.btn-flottant:active {
+  transform: scale(0.9);
+}
+
+.btn-flottant-quit {
+  bottom: 8px;
+  left: 8px;
+  background: var(--couleur-rouge);
+  color: white;
+  border-color: #8E0000;
+}
+
+.btn-flottant-debug {
+  bottom: 8px;
+  right: 8px;
+}
+
+/* ================================================================ */
+/* (fin nouvel écran de jeu)                                        */
+/* ================================================================ */
+
+/* ---- TREMBLEMENT D'ÉCRAN (screen shake) ---- */
+
+/* Tremblement faible (petit pet) */
+@keyframes shake-ecran-faible {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, 1px); }
+  20% { transform: translate(2px, -1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, -1px); }
+  60% { transform: translate(2px, 1px); }
+  70% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(-2px, 1px); }
+}
+
+/* Tremblement moyen (pet toxique) */
+@keyframes shake-ecran-moyen {
+  0%, 100% { transform: translate(0, 0); }
+  5% { transform: translate(-4px, 2px); }
+  10% { transform: translate(4px, -3px); }
+  15% { transform: translate(-3px, 4px); }
+  20% { transform: translate(3px, -4px); }
+  25% { transform: translate(-5px, 2px); }
+  30% { transform: translate(5px, -2px); }
+  35% { transform: translate(-2px, 5px); }
+  40% { transform: translate(2px, -5px); }
+  45% { transform: translate(-4px, -2px); }
+  50% { transform: translate(4px, 2px); }
+  55% { transform: translate(-3px, -4px); }
+  60% { transform: translate(3px, 4px); }
+  65% { transform: translate(-5px, -3px); }
+  70% { transform: translate(5px, 3px); }
+  75% { transform: translate(-2px, -5px); }
+  80% { transform: translate(2px, 5px); }
+  85% { transform: translate(-4px, -1px); }
+  90% { transform: translate(4px, 1px); }
+  95% { transform: translate(-1px, -3px); }
+}
+
+/* Tremblement fort (mégapet nucléaire) */
+@keyframes shake-ecran-fort {
+  0%, 100% { transform: translate(0, 0); }
+  3% { transform: translate(-8px, 4px); }
+  6% { transform: translate(8px, -6px); }
+  9% { transform: translate(-6px, 8px); }
+  12% { transform: translate(6px, -8px); }
+  15% { transform: translate(-10px, 4px); }
+  18% { transform: translate(10px, -4px); }
+  21% { transform: translate(-4px, 10px); }
+  24% { transform: translate(4px, -10px); }
+  27% { transform: translate(-8px, -4px); }
+  30% { transform: translate(8px, 4px); }
+  33% { transform: translate(-6px, -8px); }
+  36% { transform: translate(6px, 8px); }
+  39% { transform: translate(-10px, -6px); }
+  42% { transform: translate(10px, 6px); }
+  45% { transform: translate(-4px, -10px); }
+  48% { transform: translate(4px, 10px); }
+  51% { transform: translate(-8px, -2px); }
+  54% { transform: translate(8px, 2px); }
+  57% { transform: translate(-2px, -6px); }
+  60% { transform: translate(2px, 6px); }
+}
+
+/* Classes appliquées dynamiquement */
+.shake-ecran-faible {
+  animation: shake-ecran-faible 0.6s ease-in-out;
+}
+
+.shake-ecran-moyen {
+  animation: shake-ecran-moyen 0.8s ease-in-out;
+}
+
+.shake-ecran-fort {
+  animation: shake-ecran-fort 1s ease-in-out;
+}
+
+/* ---- NOTIFICATION D'ATTAQUE ---- */
+.notification-zone {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(62, 39, 35, 0.92);
+  color: var(--couleur-dore-clair);
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: 12px;
+  border: 3px solid var(--couleur-dore);
+  font-family: var(--font-retro);
+  font-size: clamp(0.6rem, 3vw, 1rem);
+  text-align: center;
+  z-index: 100;
+  animation: notif-entre 0.3s ease-out;
+  pointer-events: none;
+  max-width: 90vw;
+  box-shadow: 0 0 40px rgba(212, 160, 23, 0.5);
+}
+
+@keyframes notif-entre {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.notification-zone.masquee {
+  display: none;
+}
+
+/* ---- ÉCRAN DE FIN ---- */
+.ecran-fin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(4px);
+}
+
+.ecran-fin.masquee {
+  display: none !important;
+}
+
+.fin-contenu {
+  background: var(--couleur-blanc);
+  border: var(--border-épaisseur) solid var(--couleur-dore);
+  border-radius: 12px;
+  padding: var(--space-xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(212, 160, 23, 0.4);
+}
+
+.fin-titre {
+  font-family: var(--font-retro);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  color: var(--couleur-marron-fonce);
+  text-transform: uppercase;
+}
+
+.fin-sous-titre {
+  font-family: var(--font-retro);
+  font-size: clamp(0.45rem, 2vw, 0.65rem);
+  color: var(--couleur-marron-clair);
+}
+
+/* ---- OVERLAY CHARGEMENT ---- */
+.overlay-chargement {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(62, 39, 35, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  z-index: 300;
+  font-family: var(--font-retro);
+  color: var(--couleur-blanc);
+}
+
+.overlay-chargement.masquee {
+  display: none !important;
+}
+
+.chargement-spinner {
+  font-size: 3rem;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ================================================================ */
+/* RESPONSIVE : MOBILE < 600px                                      */
+/* ================================================================ */
+@media (max-width: 600px) {
+  .btn-prout-plein-ecran {
+    padding: 10px 8px;
+    min-height: 46px;
+    font-size: clamp(0.8rem, 4vw, 1.2rem);
+  }
+  
+  .btn-bonus-petit {
+    min-height: 38px;
+    padding: 4px 2px;
+  }
+  
+  .bonus-plein-ecran {
+    gap: 4px;
+  }
+  
+  .barre-fond-conscience {
+    height: 14px !important;
+  }
+  
+  .barre-fond-jauge {
+    height: 12px !important;
+  }
+  
+  .barre-conscience-superposee {
+    padding: 4px 6px;
+  }
+  
+  .barre-jauge-superposee {
+    padding: 4px 6px;
+  }
+
+  .notification-zone {
+    padding: var(--space-md);
+    font-size: clamp(0.5rem, 2.5vw, 0.7rem);
+  }
+
+  .fin-contenu {
+    padding: var(--space-lg);
+  }
+  
+  .bulle-parole-plein-ecran {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    top: 8px;
+    right: 8px;
+  }
+  
+  /* Ajuster l'UI du bas sur mobile */
+  .ui-bas {
+    padding: 6px 8px max(env(safe-area-inset-bottom, 4px), 8px) 8px;
+  }
+}
+
+/* ---- PETITS ÉCRANS (très petits) ---- */
+@media (max-width: 360px) {
+  .bonus-cout {
+    font-size: 0.4rem;
+  }
+  .bonus-nom {
+    font-size: 0.3rem;
+  }
+  .bonus-degats {
+    font-size: 0.25rem;
+  }
+  .barre-fond {
+    height: 14px;
+  }
+}
+
+/* ---- MODE PAYSAGE : message d'orientation ---- */
+@media (orientation: landscape) and (max-height: 500px) {
+  #screen-jeu.active::before {
+    content: "📱 Tourne ton téléphone en mode portrait !";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--couleur-marron-fonce);
+    color: var(--couleur-dore-clair);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-retro);
+    font-size: clamp(0.6rem, 2vw, 1rem);
+    text-align: center;
+    padding: var(--space-lg);
+    z-index: 999;
+  }
+}

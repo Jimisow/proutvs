@@ -348,6 +348,46 @@ html, body {
   border: 2px solid #0D47A1;
 }
 
+/* ---- CHAMP PSEUDO JOUEUR ---- */
+.pseudo-group {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.pseudo-label {
+  font-family: var(--font-retro);
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  color: var(--couleur-marron);
+}
+
+.input-pseudo {
+  font-family: var(--font-retro);
+  font-size: clamp(0.6rem, 2.5vw, 0.8rem);
+  text-align: center;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border: 3px solid var(--couleur-marron);
+  border-radius: var(--border-radius);
+  background: var(--couleur-blanc);
+  color: var(--couleur-marron-fonce);
+  width: 100%;
+  outline: none;
+  letter-spacing: 2px;
+}
+.input-pseudo:focus {
+  border-color: var(--couleur-dore);
+  box-shadow: 0 0 0 3px var(--couleur-dore-clair);
+}
+.input-pseudo::placeholder {
+  color: var(--couleur-marron-clair);
+  opacity: 0.6;
+}
+
 /* ---- SEPARATEUR ---- */
 .separateur-ou {
   width: 100%;

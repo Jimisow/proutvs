@@ -23,7 +23,7 @@ function logError(...args) {
 // =================================================================
 const etat = {
   // --- Connexion ---
-  mode: null,           // 'solo' | 'multi-hote' | 'multi-invite' | null
+  mode: null,           // 'multi-hote' | 'multi-invite' | null
   peer: null,           // Instance PeerJS
   connexion: null,      // Connexion PeerJS vers l'autre joueur
   codePartie: null,     // Code unique de la partie (6 chars)
@@ -38,10 +38,15 @@ const etat = {
   jaugeAdverse: 0,
   conscienceAdverse: 100,
   
+  // --- Pseudos ---
+  pseudoLocal: '',      // Pseudo du joueur local
+  pseudoAdverseNom: '', // Pseudo de l'adversaire (pour affichage)
+  
   // --- Partie ---
   partieFinie: false,
   victoire: false,      // true si le joueur local a gagné
   enAttenteRematch: false, // true si on attend que l'adversaire accepte de rejouer
+  partieLancee: false,  // Flag anti-double appel de demarrerPartieMulti()
 };
 
 // =================================================================
@@ -105,11 +110,38 @@ function initialiserRefsDOM() {
   // Overlay
   DOM.overlayChargement = document.getElementById('overlay-chargement');
   
-  // Pseudo (adversaire uniquement)
+  // Pseudo
+  DOM.inputPseudo = document.getElementById('input-pseudo');
   DOM.pseudoAdverse = document.getElementById('pseudo-adverse');
   
   // Décompte
   DOM.decompteOverlay = document.getElementById('decompte-overlay');
+}
+
+// =================================================================
+// GESTION DU PSEUDO
+// =================================================================
+function obtenirPseudo() {
+  const pseudo = DOM.inputPseudo ? DOM.inputPseudo.value.trim() : '';
+  return pseudo || 'PROUTEUR'; // Valeur par défaut
+}
+
+function sauvegarderPseudo() {
+  const pseudo = obtenirPseudo();
+  etat.pseudoLocal = pseudo;
+  // Optionnel : sauvegarder dans localStorage pour le prochain chargement
+  try {
+    localStorage.setItem('prout_pseudo', pseudo);
+  } catch(e) {}
+}
+
+function chargerPseudo() {
+  try {
+    const saved = localStorage.getItem('prout_pseudo');
+    if (saved && DOM.inputPseudo) {
+      DOM.inputPseudo.value = saved;
+    }
+  } catch(e) {}
 }
 
 // =================================================================
@@ -893,16 +925,18 @@ function gererConnexion(conn) {
     etat.enLigne = true;
     DOM.overlayChargement.classList.add('masquee');
     
-    // Si c'était l'invité, envoyer un message de bienvenue avec synchro initiale
+    // L'invité envoie un BONJOUR avec son état initial + pseudo
     if (etat.mode === 'multi-invite') {
+      const monPseudo = obtenirPseudo();
       envoyerMessage({
         type: 'BONJOUR',
         jauge: etat.jauge,
         conscience: etat.conscience,
+        pseudo: monPseudo,
       });
     }
     
-    // Lancer le jeu pour les deux
+    // Les deux joueurs démarrent la partie dès que la connexion est ouverte
     demarrerPartieMulti();
   });
   
@@ -946,12 +980,27 @@ function recevoirMessage(data) {
   
   switch (data.type) {
     case 'BONJOUR':
-      // L'invité envoie son état initial
+      // L'invité envoie son état initial + pseudo
       etat.jaugeAdverse = data.jauge || 0;
       etat.conscienceAdverse = data.conscience || 100;
-      log('👋 Adversaire connecté !');
-      afficherStatus('✅ Adversaire connecté !', 'succes');
-      demarrerPartieMulti();
+      etat.pseudoAdverseNom = data.pseudo || 'INVITÉ';
+      log('👋 Adversaire connecté :', etat.pseudoAdverseNom);
+      afficherStatus(`✅ ${etat.pseudoAdverseNom} est connecté !`, 'succes');
+      mettreAJourPseudos();
+      // L'hôte reçoit BONJOUR → démarre la partie (si pas déjà fait via conn.on('open'))
+      if (etat.mode === 'multi-hote') {
+        demarrerPartieMulti();
+      }
+      break;
+      
+    case 'PRET':
+      log('📩 Adversaire prêt ! Lancement du décompte...');
+      // L'adversaire peut envoyer son pseudo avec PRET
+      if (data.pseudo) {
+        etat.pseudoAdverseNom = data.pseudo;
+        mettreAJourPseudos();
+      }
+      lancerDecompte();
       break;
       
     case 'SYNC_JAUGE':
@@ -1032,6 +1081,7 @@ function recevoirMessage(data) {
       // Si on attendait aussi un rematch → go !
       if (etat.enAttenteRematch) {
         etat.enAttenteRematch = false;
+        etat.partieLancee = false; // Permettre le redémarrage
         DOM.overlayChargement.querySelector('p').textContent = 'Connexion en cours...';
         DOM.overlayChargement.classList.add('masquee');
         DOM.ecranFin.classList.add('masquee');
@@ -1041,6 +1091,7 @@ function recevoirMessage(data) {
       
       // Sinon, on est encore sur l'écran de fin : on lance direct
       if (etat.partieFinie) {
+        etat.partieLancee = false; // Permettre le redémarrage
         DOM.ecranFin.classList.add('masquee');
         demarrerPartieMulti();
       }
@@ -1055,16 +1106,14 @@ function recevoirMessage(data) {
 // DÉMARRER LA PARTIE (multi)
 // =================================================================
 function demarrerPartieMulti() {
-  log('🚀 Démarrage partie multijoueur...');
-  
-  // Vérifier que les deux sont prêts
-  if (etat.mode === 'multi-hote') {
-    // L'hôte démarre dès qu'une connexion est ouverte
-    if (!etat.enLigne) return;
-  } else if (etat.mode === 'multi-invite') {
-    // L'invité attend le BONJOUR + confirmation
-    if (!etat.enLigne) return;
+  // Empêcher les doubles appels
+  if (etat.partieLancee) {
+    log('⏭️ demarrerPartieMulti déjà lancée, ignoré');
+    return;
   }
+  etat.partieLancee = true;
+  
+  log('🚀 Démarrage partie multijoueur...');
   
   // Nettoyer tout cycle en cours
   arreterCyclesJauge();
@@ -1103,8 +1152,7 @@ function demarrerPartieMulti() {
   // Afficher le jeu
   afficherEcran('screen-jeu');
   
-  // Mise à jour du pseudo adverse
-  DOM.pseudoAdverse.textContent = etat.mode === 'multi-hote' ? '👤 INVITÉ' : '👤 HÔTE';
+  // Pseudo adverse (sera mis à jour dès qu'on reçoit le PRET adverse)
   DOM.indicateurTour.classList.add('masquee');
   
   // Mettre à jour les barres
@@ -1113,21 +1161,71 @@ function demarrerPartieMulti() {
   // +++ Initialiser l'image PN idle +++
   setCharacterImage('idle');
   
-  // === DÉCOMPTE AVANT LE DÉBUT ===
-  log('⏳ DÉCOMPTE 5 secondes...');
+  // === DÉCOMPTE SYNCHRONISÉ AVANT LE DÉBUT ===
+  log('⏳ Préparation du décompte...');
   
   // Désactiver les boutons
   DOM.btnProut.disabled = true;
   Object.values(DOM.bonusBtns).forEach(btn => btn.disabled = true);
   
-  // Créer l'élément de décompte directement dans le body
-  const decoEl = document.createElement('div');
-  decoEl.id = 'decompte-overlay';
-  decoEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:9999;font-family:monospace;font-size:120px;color:#D4A017;text-shadow:0 0 40px rgba(212,160,23,0.8);pointer-events:none;background:rgba(0,0,0,0);';
-  document.body.appendChild(decoEl);
+  // Utiliser l'élément de décompte existant dans le HTML
+  const decoEl = DOM.decompteOverlay;
+  if (!decoEl) {
+    logError('❌ Élément decompte-overlay introuvable dans le DOM');
+    // Fallback : activer quand même
+    DOM.btnProut.disabled = false;
+    mettreAJourBonus();
+    demarrerCycleJauge();
+    return;
+  }
+  
+  // Vider et préparer l'overlay
+  decoEl.textContent = '';
+  decoEl.style.display = '';
+  decoEl.classList.remove('masquee');
+  
+  // Sauvegarder notre pseudo
+  sauvegarderPseudo();
+  mettreAJourPseudos();
+  
+  // Annoncer à l'adversaire qu'on est prêt (avec notre pseudo)
+  if (etat.connexion) {
+    log('📤 Envoi signal PRET à l\'adversaire...');
+    envoyerMessage({
+      type: 'PRET',
+      pseudo: etat.pseudoLocal,
+    });
+  } else {
+    // Fallback (hors ligne, ne devrait pas arriver)
+    lancerDecompte();
+  }
+}
+
+/**
+ * Met à jour l'affichage des pseudos dans le jeu.
+ */
+function mettreAJourPseudos() {
+  const local = etat.pseudoLocal || 'TOI';
+  const adverse = etat.pseudoAdverseNom || 'ADVERSAIRE';
+  DOM.pseudoAdverse.textContent = `👤 ${adverse}`;
+}
+
+/**
+ * Lance le décompte de 5 secondes avant le début de la partie.
+ * Appelé quand les deux joueurs sont prêts.
+ */
+function lancerDecompte() {
+  log('⏳ DÉCOMPTE 5 secondes...');
+  
+  const decoEl = DOM.decompteOverlay;
+  if (!decoEl) return;
+  
+  // S'assurer que l'élément est visible et stylé
+  decoEl.style.display = 'flex';
+  decoEl.classList.remove('masquee');
+  decoEl.textContent = '';
   
   let compteur = 5;
-  log('⏳ decompte créé, compteur =', compteur);
   
   function tickDecompte() {
     if (compteur > 0) {
@@ -1137,11 +1235,11 @@ function demarrerPartieMulti() {
       setTimeout(tickDecompte, 1000);
     } else if (compteur === 0) {
       decoEl.textContent = 'LA PARTIE COMMENCE !';
-      decoEl.style.fontSize = '60px';
       log('⏳ LA PARTIE COMMENCE !');
       
       setTimeout(() => {
-        decoEl.remove();
+        decoEl.classList.add('masquee');
+        decoEl.style.display = '';
         DOM.btnProut.disabled = false;
         mettreAJourBonus();
         demarrerCycleJauge();
@@ -1160,6 +1258,7 @@ function demarrerPartieMulti() {
 // =================================================================
 function demanderRematch() {
   if (!etat.enLigne || !etat.connexion) return;
+  etat.partieLancee = false; // Permettre un nouveau démarrage
   envoyerMessage({ type: 'REMATCH' });
   DOM.overlayChargement.querySelector('p').textContent = '🔄 En attente de l\'adversaire...';
   DOM.overlayChargement.classList.remove('masquee');
@@ -1196,6 +1295,7 @@ function quitterPartie() {
   etat.partieFinie = false;
   etat.victoire = false;
   etat.enAttenteRematch = false;
+  etat.partieLancee = false;
   
   // Cacher fin et notifications
   DOM.ecranFin.classList.add('masquee');
@@ -1311,6 +1411,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Fin de partie : menu principal
   DOM.btnMenu.addEventListener('click', quitterPartie);
+  
+  // Charger le pseudo sauvegardé
+  chargerPseudo();
   
   log('✅ PROUT MANAGER initialisé !');
   log('💡 Mode debug:', DEBUG ? 'ACTIVÉ' : 'DÉSACTIVÉ');

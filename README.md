@@ -2,18 +2,11 @@
 
 **Le combat ultime de pets en temps réel !**
 
-Un jeu multijoueur (2 joueurs) ou solo (contre IA) où deux adversaires s'affrontent en accumulant une jauge de prout pour lancer des attaques dévastatrices sur la conscience de l'autre.
 
 ---
 
 ## 🎮 Comment jouer
 
-### Mode solo (contre l'IA)
-1. Ouvre `index.html` dans ton navigateur
-2. Clique sur **"Jouer contre l'IA"**
-3. Le jeu commence immédiatement
-4. Clique sur **"💨 PROUT 💨"** pour augmenter ta jauge
-5. Débloque des bonus et lance-les sur l'IA
 
 ### Mode multijoueur (2 joueurs)
 1. Les deux joueurs ouvrent `index.html` dans leurs navigateurs
@@ -59,9 +52,7 @@ Un jeu multijoueur (2 joueurs) ou solo (contre IA) où deux adversaires s'affron
 prout-manager/
 ├── index.html              # Structure principale (HTML)
 ├── style.css               # Tous les styles (CSS)
-├── game.js                 # Cœur du jeu (JS + PeerJS)
 ├── bot.js                  # IA du mode solo
-├── README.md               # Documentation
 ├── IMAGES_PROMPTS.md       # Prompts pour générer tes images
 └── img/                    # Dossier des personnages
     ├── personnage-normal.svg   # Expression neutre

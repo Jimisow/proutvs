@@ -1201,20 +1201,44 @@ html, body {
   justify-content: center;
   z-index: 400;
   font-family: var(--font-retro);
-  font-size: clamp(4rem, 15vw, 8rem);
-  color: var(--couleur-dore);
-  text-shadow: 0 0 40px rgba(212, 160, 23, 0.6), 0 0 80px rgba(212, 160, 23, 0.3);
   pointer-events: none;
-  animation: decompte-pulse 0.5s ease-in-out infinite alternate;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  transition: opacity 0.3s ease;
 }
 
 .decompte-overlay.masquee {
   display: none !important;
 }
 
-@keyframes decompte-pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.1); opacity: 1; }
+/* Chiffre du décompte */
+.decompte-chiffre {
+  position: absolute;
+  font-size: clamp(5rem, 20vw, 10rem);
+  font-weight: bold;
+  text-shadow: 0 0 60px currentColor, 0 0 120px currentColor;
+  animation: decompte-pop 0.6s ease-out;
+  transition: color 0.5s ease;
+}
+
+/* Texte "PRÊT ?" et "LA PARTIE COMMENCE !" */
+.decompte-texte {
+  position: absolute;
+  font-size: clamp(1.2rem, 5vw, 2.5rem);
+  color: var(--couleur-dore-clair);
+  text-shadow: 0 0 30px rgba(240, 199, 94, 0.6), 0 0 60px rgba(240, 199, 94, 0.3);
+  animation: decompte-texte-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes decompte-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes decompte-texte-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.05); opacity: 1; }
 }
 
 /* ================================================================ */

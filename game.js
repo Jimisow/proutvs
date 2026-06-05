@@ -1175,12 +1175,11 @@ function demarrerPartieMulti() {
   Object.values(DOM.bonusBtns).forEach(btn => { if (btn) btn.disabled = true; });
   
   // === ÉCRAN "PRÊT" AVANT LE DÉCOMPTE ===
-  // Afficher un message "Prêt ?" dans le décompte overlay
+  // Afficher un message "En attente..." dans le décompte overlay
   const decoEl = DOM.decompteOverlay;
   if (decoEl) {
     decoEl.classList.remove('masquee');
-    decoEl.textContent = 'PRÊT ?';
-    decoEl.style.fontSize = ''; // revenir à la valeur CSS par défaut
+    decoEl.innerHTML = '<div class="decompte-texte">👀 EN ATTENTE DE L\'ADVERSAIRE...</div>';
   }
   
   // Notre joueur est prêt : envoyer PRET à l'adversaire
@@ -1216,38 +1215,69 @@ function lancerDecompte() {
   const decoEl = DOM.decompteOverlay;
   if (!decoEl) {
     console.error('❌ decompteOverlay introuvable dans DOM');
-    // Fallback : activer la partie quand même
     setTimeout(() => {
-      DOM.btnProut.disabled = false;
+      if (DOM.btnProut) DOM.btnProut.disabled = false;
       mettreAJourBonus();
       demarrerCycleJauge();
     }, 1000);
     return;
   }
   
-  // Réinitialiser et afficher
+  // Vider l'overlay et l'afficher
+  decoEl.innerHTML = '';
   decoEl.classList.remove('masquee');
-  decoEl.textContent = '';
   
   let compteur = 5;
+  let chiffreEl = null;
   
   function tickDecompte() {
     if (compteur > 0) {
-      decoEl.textContent = String(compteur);
+      // Couleur : vert → jaune → orange → rouge
+      let couleur;
+      if (compteur === 5) couleur = '#4CAF50';      // vert
+      else if (compteur === 4) couleur = '#8BC34A';  // vert clair
+      else if (compteur === 3) couleur = '#FFEB3B';  // jaune
+      else if (compteur === 2) couleur = '#FF9800';  // orange
+      else couleur = '#F44336';                       // rouge
+      
+      // Créer l'élément chiffre au premier tick
+      if (!chiffreEl) {
+        chiffreEl = document.createElement('div');
+        chiffreEl.className = 'decompte-chiffre';
+        decoEl.appendChild(chiffreEl);
+      }
+      
+      // Forcer la réanimation à chaque tick
+      chiffreEl.style.color = couleur;
+      chiffreEl.style.textShadow = `0 0 60px ${couleur}, 0 0 120px ${couleur}`;
+      chiffreEl.textContent = String(compteur);
+      
+      // Reset animation
+      chiffreEl.style.animation = 'none';
+      void chiffreEl.offsetWidth;
+      chiffreEl.style.animation = 'decompte-pop 0.6s ease-out';
+      
       console.log('⏳ decompte:', compteur);
       compteur--;
       setTimeout(tickDecompte, 1000);
+      
     } else {
-      decoEl.textContent = 'LA PARTIE COMMENCE !';
+      // Afficher "LA PARTIE COMMENCE !"
+      decoEl.innerHTML = '';
+      const texteEl = document.createElement('div');
+      texteEl.className = 'decompte-texte';
+      texteEl.textContent = '💨 LA PARTIE COMMENCE ! 💨';
+      decoEl.appendChild(texteEl);
       console.log('%c⏳ LA PARTIE COMMENCE !', 'font-size:20px; color:lime;');
       
       setTimeout(() => {
+        decoEl.innerHTML = '';
         decoEl.classList.add('masquee');
-        DOM.btnProut.disabled = false;
+        if (DOM.btnProut) DOM.btnProut.disabled = false;
         mettreAJourBonus();
         demarrerCycleJauge();
         console.log('%c🎮 Partie commencée !', 'font-size:18px; color:cyan;');
-      }, 1200);
+      }, 1500);
     }
   }
   

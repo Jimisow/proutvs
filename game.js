@@ -937,6 +937,19 @@ function initialiserPeer(monId, codeAdverse = null) {
         serialization: 'json',
       });
       gererConnexion(conn);
+      
+      // +++ Timeout : si pas connecté après 15 secondes, annuler +++
+      setTimeout(() => {
+        if (!etat.enLigne) {
+          logError('⏱️ Timeout connexion PeerJS');
+          DOM.overlayChargement.classList.add('masquee');
+          afficherStatus('⏱️ Connexion impossible. Vérifie le code ou la connexion internet.', 'erreur');
+          if (conn && conn.open === false) {
+            conn.close();
+          }
+          etat.mode = null;
+        }
+      }, 15000);
     }
   });
   
@@ -1207,23 +1220,35 @@ function demarrerPartieMulti() {
   
   let compteur = 5;
   
-  if (DOM.decompteOverlay) {
-    DOM.decompteOverlay.classList.remove('masquee');
+  // Récupérer ou créer l'élément de décompte
+  let decompteEl = DOM.decompteOverlay;
+  if (!decompteEl) {
+    decompteEl = document.getElementById('decompte-overlay');
   }
+  if (!decompteEl) {
+    decompteEl = document.createElement('div');
+    decompteEl.id = 'decompte-overlay';
+    decompteEl.className = 'decompte-overlay';
+    document.getElementById('screen-jeu').appendChild(decompteEl);
+    DOM.decompteOverlay = decompteEl;
+  }
+  
+  log('⏳ decompteEl trouvé :', !!decompteEl);
+  decompteEl.classList.remove('masquee');
   
   const tick = () => {
     if (compteur > 0) {
-      if (DOM.decompteOverlay) DOM.decompteOverlay.textContent = compteur;
+      decompteEl.textContent = compteur;
       log('⏳', compteur);
       compteur--;
       setTimeout(tick, 1000);
     } else if (compteur === 0) {
-      if (DOM.decompteOverlay) DOM.decompteOverlay.textContent = 'LA PARTIE COMMENCE !';
+      decompteEl.textContent = 'LA PARTIE COMMENCE !';
       log('🎮 LA PARTIE COMMENCE !');
       
       // Après 1 seconde, cacher l'overlay et activer les boutons
       setTimeout(() => {
-        if (DOM.decompteOverlay) DOM.decompteOverlay.classList.add('masquee');
+        decompteEl.classList.add('masquee');
         DOM.btnProut.disabled = false;
         mettreAJourBonus(); // réactive les bonus selon jauge
         demarrerCycleJauge();

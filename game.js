@@ -114,6 +114,9 @@ function initialiserRefsDOM() {
   
   // Pseudo (adversaire uniquement)
   DOM.pseudoAdverse = document.getElementById('pseudo-adverse');
+  
+  // Décompte
+  DOM.decompteOverlay = document.getElementById('decompte-overlay');
 }
 
 // =================================================================
@@ -897,9 +900,27 @@ function initialiserPeer(monId, codeAdverse = null) {
     etat.peer = null;
   }
   
-  // Options PeerJS avec serveur par défaut (gratuit)
+  // Options PeerJS avec serveurs STUN/TURN pour traverser les NAT
   const peerOptions = {
     debug: DEBUG ? 2 : 0,
+    config: {
+      iceServers: [
+        // Serveur STUN Google (gratuit, fiable)
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        // Serveur TURN public (pour traverser les NAT stricts)
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject',
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject',
+        },
+      ],
+    },
   };
   
   const peer = new Peer(monId, peerOptions);
@@ -1186,30 +1207,23 @@ function demarrerPartieMulti() {
   
   let compteur = 5;
   
-  // Créer ou réutiliser un élément de décompte
-  let decompteEl = document.getElementById('decompte-overlay');
-  if (!decompteEl) {
-    decompteEl = document.createElement('div');
-    decompteEl.id = 'decompte-overlay';
-    decompteEl.className = 'decompte-overlay';
-    document.getElementById('screen-jeu').appendChild(decompteEl);
+  if (DOM.decompteOverlay) {
+    DOM.decompteOverlay.classList.remove('masquee');
   }
-  
-  decompteEl.classList.remove('masquee');
   
   const tick = () => {
     if (compteur > 0) {
-      decompteEl.textContent = compteur;
+      if (DOM.decompteOverlay) DOM.decompteOverlay.textContent = compteur;
       log('⏳', compteur);
       compteur--;
       setTimeout(tick, 1000);
     } else if (compteur === 0) {
-      decompteEl.textContent = 'LA PARTIE COMMENCE !';
+      if (DOM.decompteOverlay) DOM.decompteOverlay.textContent = 'LA PARTIE COMMENCE !';
       log('🎮 LA PARTIE COMMENCE !');
       
       // Après 1 seconde, cacher l'overlay et activer les boutons
       setTimeout(() => {
-        decompteEl.classList.add('masquee');
+        if (DOM.decompteOverlay) DOM.decompteOverlay.classList.add('masquee');
         DOM.btnProut.disabled = false;
         mettreAJourBonus(); // réactive les bonus selon jauge
         demarrerCycleJauge();

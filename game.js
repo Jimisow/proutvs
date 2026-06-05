@@ -41,6 +41,7 @@ const etat = {
   // --- Partie ---
   partieFinie: false,
   victoire: false,      // true si le joueur local a gagné
+  enAttenteRematch: false, // true si on attend que l'adversaire accepte de rejouer
   
   // --- Bot (mode solo) ---
   bot: null,            // Instance de BotIA
@@ -436,6 +437,22 @@ function animateSkill(skillLevel) {
 }
 
 /**
+ * Déclenche un flash de couleur sur l'écran de jeu.
+ * @param {string} couleur - Classe CSS (flash-vert, flash-rouge, etc.)
+ * @param {number} duree - Durée avant retrait (ms)
+ */
+function flasherEcran(couleur = 'flash-vert', duree = 1000) {
+  const ecran = document.getElementById('screen-jeu');
+  if (!ecran) return;
+  ecran.classList.remove('flash-vert', 'flash-rouge');
+  void ecran.offsetWidth;
+  ecran.classList.add(couleur);
+  setTimeout(() => {
+    ecran.classList.remove(couleur);
+  }, duree);
+}
+
+/**
  * Déclenche un tremblement d'écran proportionnel à l'intensité.
  * @param {number} intensite - 1 (faible), 2 (moyen), 3 (fort)
  */
@@ -770,6 +787,15 @@ function verifierVictoire() {
 function afficherFin(titre, sousTitre) {
   DOM.finTitre.textContent = titre;
   DOM.finSousTitre.textContent = sousTitre;
+  
+  // Ajouter la couleur selon victoire/défaite
+  DOM.finTitre.classList.remove('victoire', 'defaite');
+  if (etat.victoire) {
+    DOM.finTitre.classList.add('victoire');
+  } else {
+    DOM.finTitre.classList.add('defaite');
+  }
+  
   DOM.ecranFin.classList.remove('masquee');
 }
 
@@ -818,12 +844,17 @@ async function creerPartie() {
   
   // Afficher le code
   DOM.codeAffiche.textContent = code;
+  DOM.codeAffiche.style.display = ''; // réafficher le grand code
   DOM.codeLabel.textContent = '🔑 Code de la partie :';
   DOM.codeInputGroup.classList.add('masquee');
   DOM.attenteMsg.classList.remove('masquee');
   DOM.zoneCode.classList.remove('masquee');
   
   afficherStatus('En attente d\'un adversaire...', 'info');
+  
+  // Cacher les boutons du menu
+  const accueilBoutons = document.getElementById('accueil-boutons');
+  if (accueilBoutons) accueilBoutons.style.display = 'none';
   
   // Initialiser PeerJS
   try {
@@ -994,17 +1025,11 @@ function recevoirMessage(data) {
       break;
       
         case 'ANIMATE_BASIC':
-    // L'adversaire a fait un pet classique → on voit son personnage PNG s'animer
-    animateBasicFart();
-    jouerSonBase(); // 🔊 On entend aussi le pet adverse
+    // L'adversaire a fait un pet classique → rien côté local (son + anim côté lanceur uniquement)
     break;
       
     case 'ANIMATE_SKILL':
-    // L'adversaire lance une compétence → on voit son personnage PNG s'animer
-    if (data.level >= 1 && data.level <= 3) {
-      animateSkill(data.level);
-      jouerSonCompetence(data.level); // 🔊 Son compétence adverse
-    }
+    // L'adversaire lance une compétence → rien côté local
     break;
       
     case 'ATTAQUE':
@@ -1018,6 +1043,7 @@ function recevoirMessage(data) {
       // +++ Animation : personnage adverse attaque (vu de notre côté) +++
       animerAttaque('adverse');
       ajouterIconeEvenement('💨💥', 2000);
+      flasherEcran('flash-vert', 800); // ✨ Flash vert : on subit une attaque
       
       // Animation PNG : nous subissons → after (soulagé/surprise)
       setCharacterImage('after');
@@ -1069,6 +1095,27 @@ function recevoirMessage(data) {
       }
       break;
       
+    case 'REMATCH':
+      // L'adversaire veut rejouer
+      log('🔄 Adversaire demande un rematch');
+      
+      // Si on attendait aussi un rematch → go !
+      if (etat.enAttenteRematch) {
+        etat.enAttenteRematch = false;
+        DOM.overlayChargement.querySelector('p').textContent = 'Connexion en cours...';
+        DOM.overlayChargement.classList.add('masquee');
+        DOM.ecranFin.classList.add('masquee');
+        demarrerPartieMulti();
+        break;
+      }
+      
+      // Sinon, on est encore sur l'écran de fin : on lance direct
+      if (etat.partieFinie) {
+        DOM.ecranFin.classList.add('masquee');
+        demarrerPartieMulti();
+      }
+      break;
+      
     default:
       log('⚠️ Type de message inconnu:', data.type);
   }
@@ -1103,6 +1150,21 @@ function demarrerPartieMulti() {
   etat.conscienceAdverse = 100;
   etat.partieFinie = false;
   etat.victoire = false;
+  etat.enAttenteRematch = false;
+  
+  log('=== NOUVELLE PARTIE MULTI ===');
+  log('jauge locale =', etat.jauge);
+  log('conscience locale =', etat.conscience);
+  
+  // Forcer les barres DOM à 0
+  if (DOM.jaugeLocalBar) DOM.jaugeLocalBar.style.width = '0%';
+  if (DOM.jaugeLocalText) DOM.jaugeLocalText.textContent = '0%';
+  if (DOM.conscienceLocalBar) DOM.conscienceLocalBar.style.width = '100%';
+  if (DOM.conscienceLocalText) DOM.conscienceLocalText.textContent = '100%';
+  if (DOM.jaugeAdverseBar) DOM.jaugeAdverseBar.style.width = '0%';
+  if (DOM.jaugeAdverseText) DOM.jaugeAdverseText.textContent = '0%';
+  if (DOM.conscienceAdverseBar) DOM.conscienceAdverseBar.style.width = '100%';
+  if (DOM.conscienceAdverseText) DOM.conscienceAdverseText.textContent = '100%';
   
   // Cacher les écrans de démarrage
   DOM.ecranFin.classList.add('masquee');
@@ -1161,6 +1223,7 @@ function demarrerPartieSolo() {
   etat.conscienceAdverse = 100;
   etat.partieFinie = false;
   etat.victoire = false;
+  etat.enAttenteRematch = false;
   
   log('=== NOUVELLE PARTIE SOLO ===');
   log('jauge locale =', etat.jauge);
@@ -1215,6 +1278,7 @@ function demarrerPartieSolo() {
       // +++ Animation SVG : l'IA attaque +++
       animerAttaque('adverse');
       ajouterIconeEvenement('🤖💥', 2000);
+      flasherEcran('flash-vert', 800); // ✨ Flash vert
       
       // Animation PNG : nous subissons
       setCharacterImage('after');
@@ -1303,6 +1367,7 @@ function quitterPartie() {
   etat.conscienceAdverse = 100;
   etat.partieFinie = false;
   etat.victoire = false;
+  etat.enAttenteRematch = false;
   
   // Cacher fin et notifications
   DOM.ecranFin.classList.add('masquee');
@@ -1351,11 +1416,15 @@ document.addEventListener('DOMContentLoaded', () => {
     etat.mode = 'multi-invite';
     DOM.codeLabel.textContent = '🔑 Entrer le code :';
     DOM.codeAffiche.textContent = '';
+    DOM.codeAffiche.style.display = 'none'; // cacher l'affichage du grand code
     DOM.codeInputGroup.classList.remove('masquee');
     DOM.attenteMsg.classList.add('masquee');
     DOM.zoneCode.classList.remove('masquee');
     DOM.codeInput.value = '';
     DOM.codeInput.focus();
+    // Cacher les boutons du menu
+    const accueilBoutons = document.getElementById('accueil-boutons');
+    if (accueilBoutons) accueilBoutons.style.display = 'none';
   });
   
   // Valider le code de partie
@@ -1381,6 +1450,10 @@ document.addEventListener('DOMContentLoaded', () => {
   DOM.btnAnnulerCode.addEventListener('click', () => {
     DOM.zoneCode.classList.add('masquee');
     DOM.statusMsg.classList.add('masquee');
+    DOM.codeAffiche.style.display = ''; // reset
+    // Réafficher les boutons du menu
+    const accueilBoutons = document.getElementById('accueil-boutons');
+    if (accueilBoutons) accueilBoutons.style.display = '';
     etat.mode = null;
   });
   
@@ -1410,8 +1483,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (etat.mode === 'solo') {
       demarrerPartieSolo();
     } else if (etat.enLigne) {
-      // En multijoueur, réinitialiser et demander à l'autre de faire pareil
-      demarrerPartieMulti();
+      // En multijoueur : envoyer une demande de rematch
+      envoyerMessage({ type: 'REMATCH' });
+      // Afficher l'overlay d'attente
+      DOM.overlayChargement.querySelector('p').textContent = '🔄 En attente de l\'adversaire...';
+      DOM.overlayChargement.classList.remove('masquee');
+      // Stocker qu'on attend un rematch
+      etat.enAttenteRematch = true;
     } else {
       quitterPartie();
     }

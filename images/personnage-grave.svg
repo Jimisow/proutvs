@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <rect x="20" y="40" width="40" height="30" rx="6" fill="#D7CCC8" stroke="#5D4037" stroke-width="2"/>
+  <rect x="22" y="42" width="36" height="12" rx="4" fill="#8D6E63" stroke="#5D4037" stroke-width="1"/>
+  <rect x="25" y="30" width="30" height="14" rx="4" fill="#EFEBE9" stroke="#5D4037" stroke-width="2"/>
+  <circle cx="40" cy="18" r="12" fill="#F5D0A9" stroke="#5D4037" stroke-width="2"/>
+  <!-- Yeux plissés douleur -->
+  <line x1="30" y1="15" x2="36" y2="17" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>
+  <line x1="44" y1="17" x2="50" y2="15" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bouche douleur -->
+  <path d="M36 23 Q40 20 44 23" fill="none" stroke="#3E2723" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Goutte de sueur -->
+  <path d="M52 10 Q55 13 52 16" fill="#4FC3F7" stroke="none"/>
+  <path d="M50 12 Q40 6 30 12" fill="#5D4037" stroke="none"/>
+</svg>

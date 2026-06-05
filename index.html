@@ -14,8 +14,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" defer></script>
   
   <!-- Nos scripts (cache-busting avec timestamp) -->
-  <script src="bot.js?ts=2" defer></script>
-  <script src="game.js?ts=2" defer></script>
+  <script src="game.js?ts=4" defer></script>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💨</text></svg>" />
 </head>
@@ -42,11 +41,6 @@
         <div class="separateur-ou">
           <span>— OU —</span>
         </div>
-        
-        <!-- Mode solo IA -->
-        <button id="btn-solo-ia" class="btn btn-accueil btn-dore">
-          🤖 Jouer contre l'IA
-        </button>
       </div>
       
       <!-- Zone code (affichée après clic sur Créer ou Rejoindre) -->
@@ -171,7 +165,6 @@
       <div class="fin-contenu">
         <h2 id="fin-titre" class="fin-titre"></h2>
         <p id="fin-sous-titre" class="fin-sous-titre"></p>
-        <button id="btn-rejouer" class="btn btn-accueil btn-marron">🔄 Rejouer</button>
         <button id="btn-menu" class="btn btn-accueil btn-kaki">🏠 Menu principal</button>
       </div>
     </div>

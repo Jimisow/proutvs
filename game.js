@@ -43,9 +43,6 @@ const etat = {
   victoire: false,      // true si le joueur local a gagné
   enAttenteRematch: false, // true si on attend que l'adversaire accepte de rejouer
   
-  // --- Bot (mode solo) ---
-  bot: null,            // Instance de BotIA
-  
   // +++ Timers pour les expressions faciales +++
   timerExpressionLocal: null,
   timerExpressionAdverse: null,
@@ -710,9 +707,6 @@ function lancerBonus(idBonus) {
       degats: degatsReels,
       jaugeApres: etat.jauge,
     });
-  } else if (etat.mode === 'solo' && etat.bot) {
-    // En mode solo, informer le bot qu'il a été attaqué
-    etat.bot.subirDegats(degatsReels);
   }
   
   mettreAJourBarres();
@@ -1190,141 +1184,14 @@ function demarrerPartieMulti() {
 }
 
 // =================================================================
-// DÉMARRER LA PARTIE SOLO (contre IA)
+// GESTION DU REMATCH (multi)
 // =================================================================
-function demarrerPartieSolo() {
-  log('🤖 Démarrage partie solo contre IA...');
-  
-  // 1. TOUT arrêter
-  arreterCyclesJauge();
-  
-  // Nettoyer l'ancien bot s'il existe
-  if (etat.bot) {
-    etat.bot.arreter();
-    etat.bot = null;
-  }
-  
-  // Nettoyer les timers d'expression
-  if (etat.timerExpressionLocal) clearTimeout(etat.timerExpressionLocal);
-  if (etat.timerExpressionAdverse) clearTimeout(etat.timerExpressionAdverse);
-  etat.timerExpressionLocal = null;
-  etat.timerExpressionAdverse = null;
-  
-  // Nettoyer les piles d'icônes
-  const pile = document.getElementById('pile-icones');
-  if (pile) pile.innerHTML = '';
-  
-  // 2. Réinitialiser TOUT l'état
-  etat.mode = 'solo';
-  etat.enLigne = false;
-  etat.jauge = 0;
-  etat.conscience = 100;
-  etat.jaugeAdverse = 0;
-  etat.conscienceAdverse = 100;
-  etat.partieFinie = false;
-  etat.victoire = false;
-  etat.enAttenteRematch = false;
-  
-  log('=== NOUVELLE PARTIE SOLO ===');
-  log('jauge locale =', etat.jauge);
-  log('conscience locale =', etat.conscience);
-  
-  // 3. Forcer les barres DOM à 0
-  if (DOM.jaugeLocalBar) DOM.jaugeLocalBar.style.width = '0%';
-  if (DOM.jaugeLocalText) DOM.jaugeLocalText.textContent = '0%';
-  if (DOM.conscienceLocalBar) DOM.conscienceLocalBar.style.width = '100%';
-  if (DOM.conscienceLocalText) DOM.conscienceLocalText.textContent = '100%';
-  if (DOM.jaugeAdverseBar) DOM.jaugeAdverseBar.style.width = '0%';
-  if (DOM.jaugeAdverseText) DOM.jaugeAdverseText.textContent = '0%';
-  if (DOM.conscienceAdverseBar) DOM.conscienceAdverseBar.style.width = '100%';
-  if (DOM.conscienceAdverseText) DOM.conscienceAdverseText.textContent = '100%';
-  
-  // 4. Afficher les bons écrans
-  DOM.ecranFin.classList.add('masquee');
-  DOM.zoneCode.classList.add('masquee');
-  DOM.notificationZone.classList.add('masquee');
-  
-  afficherEcran('screen-jeu');
-  
-  // 5. Configurer l'UI
-  DOM.pseudoAdverse.textContent = '🤖 IA STUPIDE';
-  DOM.indicateurTour.classList.add('masquee');
-  
-  // 6. Enlever l'état mort du personnage PNG
-  const png = document.getElementById('characterImg');
-  if (png) {
-    png.classList.remove('dead');
-    png.style.filter = '';
-    png.style.transform = '';
-    png.style.opacity = '';
-    png.src = IMAGES_PNG.idle;
-  }
-  
-  // 7. Créer et démarrer le bot
-  etat.bot = new BotIA({
-    onJaugeChange: (nouvelleJauge) => {
-      etat.jaugeAdverse = nouvelleJauge;
-      mettreAJourBarres();
-    },
-    onAttaque: (cout, degats) => {
-      // Le bot attaque le joueur
-      etat.conscience = Math.max(0, etat.conscience - degats);
-      log(`🤖 IA attaque : -${degats}% conscience !`);
-      
-      // +++ Animation PNG : on voit l'attaque du bot +++
-      animateSkill(cout === 25 ? 1 : cout === 50 ? 2 : 3);
-      jouerSonCompetence(cout === 25 ? 1 : cout === 50 ? 2 : 3); // 🔊 Son de l'attaque IA
-      
-      // +++ Animation SVG : l'IA attaque +++
-      animerAttaque('adverse');
-      ajouterIconeEvenement('🤖💥', 2000);
-      flasherEcran('flash-vert', 800); // ✨ Flash vert
-      
-      // Animation PNG : nous subissons
-      setCharacterImage('after');
-      setTimeout(() => { setCharacterImage('idle'); }, 600);
-      
-      // Animation SVG : nous subissons
-      secouerPersonnage('local');
-      
-      // +++ Tremblement d'écran +++
-      tremblerEcran(1);
-      
-      if (etat.conscience <= 0) {
-        changerExpression('local', 'MORT', false);
-        mettrePersonnageMort('local');
-      } else if (etat.conscience <= 30) {
-        changerExpression('local', 'GRAVE', true);
-      } else {
-        changerExpression('local', 'DEGATS', true);
-      }
-      afficherBulle('local', '💢', 1200);
-      
-      mettreAJourBarres();
-      
-      // Notification
-      const nomAttaque = degats === 5 ? 'Pet léger' : degats === 12 ? 'Pet toxique' : 'Mégapet nucléaire';
-      afficherNotification(`🤖 L'IA lance ${nomAttaque} ! -${degats}% 💨`);
-      
-      verifierVictoire();
-    },
-  });
-  
-  etat.bot.demarrer();
-  
-  // 8. Démarrer le cycle jauge du joueur
-  demarrerCycleJauge();
-  
-  log('🤖 Partie solo commencée !');
-  
-  // +++ TEST : Vérifier que le bot tourne bien +++
-  setTimeout(() => {
-    if (etat.bot) {
-      log('🧪 Bot existe et actif =', etat.bot.actif, 'jauge IA =', etat.bot.jauge);
-    } else {
-      logError('🧪 Bot est NULL !!!');
-    }
-  }, 100);
+function demanderRematch() {
+  if (!etat.enLigne || !etat.connexion) return;
+  envoyerMessage({ type: 'REMATCH' });
+  DOM.overlayChargement.querySelector('p').textContent = '🔄 En attente de l\'adversaire...';
+  DOM.overlayChargement.classList.remove('masquee');
+  etat.enAttenteRematch = true;
 }
 
 // =================================================================
@@ -1341,11 +1208,6 @@ function quitterPartie() {
   if (etat.timerExpressionAdverse) clearTimeout(etat.timerExpressionAdverse);
   etat.timerExpressionLocal = null;
   etat.timerExpressionAdverse = null;
-  
-  if (etat.bot) {
-    etat.bot.arreter();
-    etat.bot = null;
-  }
   
   // Fermer connexion PeerJS
   if (etat.connexion) {
@@ -1457,11 +1319,6 @@ document.addEventListener('DOMContentLoaded', () => {
     etat.mode = null;
   });
   
-  // Mode solo IA
-  DOM.btnSoloIA.addEventListener('click', () => {
-    demarrerPartieSolo();
-  });
-  
   // ---- Écran de jeu ----
   // Bouton PROUT
   DOM.btnProut.addEventListener('click', clicProut);
@@ -1477,24 +1334,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Debug
   DOM.btnDebug.addEventListener('click', basculerDebug);
   
-  // Fin de partie : rejouer / menu
-  DOM.btnRejouer.addEventListener('click', () => {
-    DOM.ecranFin.classList.add('masquee');
-    if (etat.mode === 'solo') {
-      demarrerPartieSolo();
-    } else if (etat.enLigne) {
-      // En multijoueur : envoyer une demande de rematch
-      envoyerMessage({ type: 'REMATCH' });
-      // Afficher l'overlay d'attente
-      DOM.overlayChargement.querySelector('p').textContent = '🔄 En attente de l\'adversaire...';
-      DOM.overlayChargement.classList.remove('masquee');
-      // Stocker qu'on attend un rematch
-      etat.enAttenteRematch = true;
-    } else {
-      quitterPartie();
-    }
-  });
-  
+  // Fin de partie : menu principal
   DOM.btnMenu.addEventListener('click', quitterPartie);
   
   log('✅ PROUT MANAGER initialisé !');

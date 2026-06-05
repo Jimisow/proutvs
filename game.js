@@ -47,6 +47,11 @@ const etat = {
   victoire: false,      // true si le joueur local a gagné
   enAttenteRematch: false, // true si on attend que l'adversaire accepte de rejouer
   partieLancee: false,  // Flag anti-double appel de demarrerPartieMulti()
+  
+  // --- Matchmaking Firestore ---
+  firestoreDispo: false, // Firebase est-il chargé ?
+  docMatchmakingId: null, // ID du document Firestore si on cherche
+  annulerMatchmaking: false, // Pour annuler la recherche
 };
 
 // =================================================================
@@ -66,6 +71,7 @@ function initialiserRefsDOM() {
   DOM.btnAnnulerCode = document.getElementById('btn-annuler-code');
   DOM.attenteMsg = document.getElementById('attente-msg');
   DOM.statusMsg = document.getElementById('status-msg');
+  DOM.btnChercher = document.getElementById('btn-chercher');
   DOM.btnCreer = document.getElementById('btn-creer');
   DOM.btnRejoindre = document.getElementById('btn-rejoindre');
   DOM.btnQuitter = document.getElementById('btn-quitter');
@@ -109,6 +115,7 @@ function initialiserRefsDOM() {
   
   // Overlay
   DOM.overlayChargement = document.getElementById('overlay-chargement');
+  DOM.btnAnnulerRecherche = document.getElementById('btn-annuler-recherche');
   
   // Pseudo
   DOM.inputPseudo = document.getElementById('input-pseudo');
@@ -1327,6 +1334,13 @@ function quitterPartie() {
   etat.victoire = false;
   etat.enAttenteRematch = false;
   etat.partieLancee = false;
+  etat.docMatchmakingId = null;
+  etat.annulerMatchmaking = false;
+  
+  // Nettoyer le matchmaking si actif
+  if (typeof nettoyerMatchmaking === 'function') {
+    nettoyerMatchmaking();
+  }
   
   // Cacher fin et notifications
   DOM.ecranFin.classList.add('masquee');
@@ -1383,6 +1397,18 @@ document.addEventListener('DOMContentLoaded', () => {
       validerPseudo();
     }
   });
+  
+  // Chercher un adversaire (matchmaking)
+  if (DOM.btnChercher) {
+    DOM.btnChercher.addEventListener('click', () => {
+      validerPseudo();
+      if (typeof chercherAdversaire === 'function') {
+        chercherAdversaire();
+      } else {
+        afficherStatus('⚠️ Fonction de recherche pas encore configurée.', 'erreur');
+      }
+    });
+  }
   
   // Créer une partie
   DOM.btnCreer.addEventListener('click', () => {
@@ -1457,6 +1483,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Charger le pseudo sauvegardé
   chargerPseudo();
+  
+  // Initialiser Firestore pour le matchmaking
+  if (typeof initialiserFirestore === 'function') {
+    initialiserFirestore();
+  }
   
   log('✅ PROUT MANAGER initialisé !');
   log('💡 Mode debug:', DEBUG ? 'ACTIVÉ' : 'DÉSACTIVÉ');

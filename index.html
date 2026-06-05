@@ -13,8 +13,13 @@
   <!-- PeerJS via CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" defer></script>
   
+  <!-- Firebase Firestore (matchmaking) -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js" defer></script>
+  
   <!-- Nos scripts (cache-busting avec timestamp) -->
   <script src="game.js?ts=6" defer></script>
+  <script src="matchmaking.js?ts=1" defer></script>
   <link rel="stylesheet" href="style.css" />
   <!-- PWA : Manifest & Service Worker -->
   <link rel="manifest" href="manifest.json" />
@@ -59,6 +64,10 @@
       </div>
       
       <div id="accueil-boutons" class="accueil-boutons">
+        <!-- Matchmaking (recherche automatique) -->
+        <button id="btn-chercher" class="btn btn-accueil btn-dore">
+          🔍 Chercher un adversaire
+        </button>
         <!-- Mode multijoueur -->
         <button id="btn-creer" class="btn btn-accueil btn-marron">
           🎮 Créer une partie
@@ -201,6 +210,7 @@
   <div id="overlay-chargement" class="overlay-chargement masquee">
     <div class="chargement-spinner">💨</div>
     <p>Connexion en cours...</p>
+    <button id="btn-annuler-recherche" class="btn btn-rouge masquee" style="margin-top:20px;">🚫 Annuler la recherche</button>
   </div>
 
   <!-- ============================================================ -->

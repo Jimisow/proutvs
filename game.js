@@ -729,7 +729,7 @@ function infligerDegatsAdverse(degats) {
 }
 
 // =================================================================
-// VÉRIFICATION VICTOIRE / DÉFAITE
+// VÉRIFICATION VICTOIRE / PERDUE
 // =================================================================
 function verifierVictoire() {
   // Victoire locale ?
@@ -766,7 +766,7 @@ function verifierVictoire() {
     afficherBulle('local', '💀', 3000);
     afficherBulle('adverse', '🏆', 3000);
     
-    afficherFin('💀 DÉFAITE... 💀', 'Ta conscience a été réduite à néant ! 🧻');
+    afficherFin('💀 PERDU... 💀', 'Ta conscience a été réduite à néant ! 🧻');
     
     if (etat.enLigne && etat.connexion) {
       envoyerMessage({ type: 'DEFAITE' });
@@ -1075,7 +1075,7 @@ function recevoirMessage(data) {
         etat.partieFinie = true;
         etat.victoire = false;
         arreterCyclesJauge();
-        afficherFin('💀 DÉFAITE... 💀', 'Ton adversaire a gagné !');
+        afficherFin('💀 PERDU... 💀', 'Ton adversaire a gagné !');
       }
       break;
       
@@ -1177,10 +1177,50 @@ function demarrerPartieMulti() {
   // +++ Initialiser l'image PN idle +++
   setCharacterImage('idle');
   
-  // Démarrer le cycle jauge
-  demarrerCycleJauge();
+  // === DÉCOMPTE AVANT LE DÉBUT ===
+  log('⏳ Décompte avant début...');
   
-  log('🎮 Partie multijoueur commencée !');
+  // Désactiver les boutons pendant le décompte
+  DOM.btnProut.disabled = true;
+  Object.values(DOM.bonusBtns).forEach(btn => btn.disabled = true);
+  
+  let compteur = 5;
+  
+  // Créer ou réutiliser un élément de décompte
+  let decompteEl = document.getElementById('decompte-overlay');
+  if (!decompteEl) {
+    decompteEl = document.createElement('div');
+    decompteEl.id = 'decompte-overlay';
+    decompteEl.className = 'decompte-overlay';
+    document.getElementById('screen-jeu').appendChild(decompteEl);
+  }
+  
+  decompteEl.classList.remove('masquee');
+  
+  const tick = () => {
+    if (compteur > 0) {
+      decompteEl.textContent = compteur;
+      log('⏳', compteur);
+      compteur--;
+      setTimeout(tick, 1000);
+    } else if (compteur === 0) {
+      decompteEl.textContent = 'LA PARTIE COMMENCE !';
+      log('🎮 LA PARTIE COMMENCE !');
+      
+      // Après 1 seconde, cacher l'overlay et activer les boutons
+      setTimeout(() => {
+        decompteEl.classList.add('masquee');
+        DOM.btnProut.disabled = false;
+        mettreAJourBonus(); // réactive les bonus selon jauge
+        demarrerCycleJauge();
+        log('🎮 Partie multijoueur commencée !');
+      }, 1000);
+      
+      compteur--;
+    }
+  };
+  
+  tick();
 }
 
 // =================================================================
@@ -1235,6 +1275,16 @@ function quitterPartie() {
   DOM.ecranFin.classList.add('masquee');
   DOM.notificationZone.classList.add('masquee');
   DOM.zoneCode.classList.add('masquee');
+  DOM.codeAffiche.style.display = '';
+  DOM.statusMsg.classList.add('masquee');
+  
+  // Réafficher les boutons du menu
+  const accueilBoutons = document.getElementById('accueil-boutons');
+  if (accueilBoutons) accueilBoutons.style.display = '';
+  
+  // Remettre le texte de l'overlay par défaut
+  DOM.overlayChargement.querySelector('p').textContent = 'Connexion en cours...';
+  DOM.overlayChargement.classList.add('masquee');
   
   // Retour à l'accueil
   afficherEcran('screen-accueil');

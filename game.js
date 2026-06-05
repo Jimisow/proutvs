@@ -1012,7 +1012,13 @@ function recevoirMessage(data) {
       break;
       
     case 'PRET':
-      log('📩 PRET ignoré (ancien message, doublon)');
+      log('📩 Adversaire PRÊT ! Pseudo:', data.pseudo);
+      if (data.pseudo) {
+        etat.pseudoAdverseNom = data.pseudo;
+        mettreAJourPseudos();
+      }
+      // L'adversaire est prêt → on lance le décompte
+      lancerDecompte();
       break;
       
     case 'SYNC_JAUGE':
@@ -1118,23 +1124,17 @@ function recevoirMessage(data) {
 // DÉMARRER LA PARTIE (multi)
 // =================================================================
 function demarrerPartieMulti() {
-  // Empêcher les doubles appels
-  if (etat.partieLancee) {
-    log('⏭️ demarrerPartieMulti déjà lancée, ignoré');
-    return;
-  }
+  if (etat.partieLancee) return;
   etat.partieLancee = true;
   
   log('🚀 Démarrage partie multijoueur...');
   
-  // Nettoyer tout cycle en cours
+  // Nettoyer tout
   arreterCyclesJauge();
-  
-  // Nettoyer les piles d'icônes
   const pile = document.getElementById('pile-icones');
   if (pile) pile.innerHTML = '';
   
-  // Initialiser l'état
+  // Réinitialiser l'état
   etat.jauge = 0;
   etat.conscience = 100;
   etat.jaugeAdverse = 0;
@@ -1144,10 +1144,8 @@ function demarrerPartieMulti() {
   etat.enAttenteRematch = false;
   
   log('=== NOUVELLE PARTIE MULTI ===');
-  log('jauge locale =', etat.jauge);
-  log('conscience locale =', etat.conscience);
   
-  // Forcer les barres DOM à 0
+  // Barres DOM à 0
   if (DOM.jaugeLocalBar) DOM.jaugeLocalBar.style.width = '0%';
   if (DOM.jaugeLocalText) DOM.jaugeLocalText.textContent = '0%';
   if (DOM.conscienceLocalBar) DOM.conscienceLocalBar.style.width = '100%';
@@ -1157,56 +1155,38 @@ function demarrerPartieMulti() {
   if (DOM.conscienceAdverseBar) DOM.conscienceAdverseBar.style.width = '100%';
   if (DOM.conscienceAdverseText) DOM.conscienceAdverseText.textContent = '100%';
   
-  // Cacher les écrans de démarrage
+  // Cacher écrans
   DOM.ecranFin.classList.add('masquee');
   DOM.zoneCode.classList.add('masquee');
   
-  // Afficher le jeu
+  // Afficher jeu
   afficherEcran('screen-jeu');
-  
-  // Pseudo adverse (sera mis à jour dès qu'on reçoit le PRET adverse)
   DOM.indicateurTour.classList.add('masquee');
   
-  // Mettre à jour les barres
+  // Barres
   mettreAJourBarres();
-  
-  // +++ Initialiser l'image PN idle +++
   setCharacterImage('idle');
   
-  // === DÉCOMPTE SYNCHRONISÉ AVANT LE DÉBUT ===
-  log('⏳ Préparation du décompte...');
+  // Pseudos
+  mettreAJourPseudos();
   
-  // Désactiver les boutons
+  // Désactiver les boutons de jeu
   DOM.btnProut.disabled = true;
   Object.values(DOM.bonusBtns).forEach(btn => btn.disabled = true);
   
-  // Utiliser l'élément de décompte existant dans le HTML
+  // === ÉCRAN "PRÊT" AVANT LE DÉCOMPTE ===
+  // Afficher un message "Prêt ?" dans le décompte overlay
   const decoEl = DOM.decompteOverlay;
-  if (!decoEl) {
-    logError('❌ Élément decompte-overlay introuvable dans le DOM');
-    // Fallback : activer quand même
-    DOM.btnProut.disabled = false;
-    mettreAJourBonus();
-    demarrerCycleJauge();
-    return;
+  if (decoEl) {
+    decoEl.classList.remove('masquee');
+    decoEl.textContent = 'PRÊT ?';
+    decoEl.style.fontSize = ''; // revenir à la valeur CSS par défaut
   }
   
-  // Vider et préparer l'overlay
-  decoEl.textContent = '';
-  decoEl.style.display = '';
-  decoEl.classList.remove('masquee');
-  
-  // Mettre à jour l'affichage du pseudo
-  mettreAJourPseudos();
-  
-  // L'hôte lance le décompte directement (l'invité le lance via LANCER)
-  if (etat.mode !== 'multi-hote') {
-    // L'invité attend le signal LANCER de l'hôte
-    log('⏳ Invité en attente du signal LANCER...');
-  } else {
-    // L'hôte commence le décompte (le message LANCER est envoyé dans recevoirMessage/BONJOUR)
-    log('⏳ Hôte prêt, début du décompte...');
-    lancerDecompte();
+  // Notre joueur est prêt : envoyer PRET à l'adversaire
+  if (etat.connexion) {
+    log('📤 Envoi PRET à l\'adversaire');
+    envoyerMessage({ type: 'PRET', pseudo: etat.pseudoLocal });
   }
 }
 

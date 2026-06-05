@@ -1155,13 +1155,13 @@ function demarrerPartieMulti() {
   if (DOM.conscienceAdverseBar) DOM.conscienceAdverseBar.style.width = '100%';
   if (DOM.conscienceAdverseText) DOM.conscienceAdverseText.textContent = '100%';
   
-  // Cacher écrans
-  DOM.ecranFin.classList.add('masquee');
-  DOM.zoneCode.classList.add('masquee');
+  // Cacher écrans (sécurisé)
+  if (DOM.ecranFin) DOM.ecranFin.classList.add('masquee');
+  if (DOM.zoneCode) DOM.zoneCode.classList.add('masquee');
   
   // Afficher jeu
   afficherEcran('screen-jeu');
-  DOM.indicateurTour.classList.add('masquee');
+  if (DOM.indicateurTour) DOM.indicateurTour.classList.add('masquee');
   
   // Barres
   mettreAJourBarres();
@@ -1171,8 +1171,8 @@ function demarrerPartieMulti() {
   mettreAJourPseudos();
   
   // Désactiver les boutons de jeu
-  DOM.btnProut.disabled = true;
-  Object.values(DOM.bonusBtns).forEach(btn => btn.disabled = true);
+  if (DOM.btnProut) DOM.btnProut.disabled = true;
+  Object.values(DOM.bonusBtns).forEach(btn => { if (btn) btn.disabled = true; });
   
   // === ÉCRAN "PRÊT" AVANT LE DÉCOMPTE ===
   // Afficher un message "Prêt ?" dans le décompte overlay
@@ -1187,6 +1187,13 @@ function demarrerPartieMulti() {
   if (etat.connexion) {
     log('📤 Envoi PRET à l\'adversaire');
     envoyerMessage({ type: 'PRET', pseudo: etat.pseudoLocal });
+  }
+  
+  // Si l'adversaire est déjà prêt (on a reçu BONJOUR avant d'appeler demarrerPartieMulti)
+  // ça ne devrait pas arriver mais on sécurise
+  if (etat.jaugeAdverse > 0 && etat.conscienceAdverse < 100) {
+    // On a déjà reçu BONJOUR, l'adversaire est connecté
+    log('📩 Adversaire déjà connecté, on attend son PRET...');
   }
 }
 

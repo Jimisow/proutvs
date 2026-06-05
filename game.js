@@ -1224,13 +1224,21 @@ function mettreAJourPseudos() {
  * Appelé quand les deux joueurs sont prêts.
  */
 function lancerDecompte() {
-  log('⏳ DÉCOMPTE 5 secondes...');
+  console.log('%c⏳ DÉCOMPTE 5 secondes !', 'font-size:24px; color:gold;');
   
   const decoEl = DOM.decompteOverlay;
-  if (!decoEl) return;
+  if (!decoEl) {
+    console.error('❌ decompteOverlay introuvable dans DOM');
+    // Fallback : activer la partie quand même
+    setTimeout(() => {
+      DOM.btnProut.disabled = false;
+      mettreAJourBonus();
+      demarrerCycleJauge();
+    }, 1000);
+    return;
+  }
   
-  // S'assurer que l'élément est visible et stylé
-  decoEl.style.display = 'flex';
+  // Réinitialiser et afficher
   decoEl.classList.remove('masquee');
   decoEl.textContent = '';
   
@@ -1238,24 +1246,21 @@ function lancerDecompte() {
   
   function tickDecompte() {
     if (compteur > 0) {
-      decoEl.textContent = compteur;
-      log('⏳ decompte:', compteur);
+      decoEl.textContent = String(compteur);
+      console.log('⏳ decompte:', compteur);
       compteur--;
       setTimeout(tickDecompte, 1000);
-    } else if (compteur === 0) {
+    } else {
       decoEl.textContent = 'LA PARTIE COMMENCE !';
-      log('⏳ LA PARTIE COMMENCE !');
+      console.log('%c⏳ LA PARTIE COMMENCE !', 'font-size:20px; color:lime;');
       
       setTimeout(() => {
         decoEl.classList.add('masquee');
-        decoEl.style.display = '';
         DOM.btnProut.disabled = false;
         mettreAJourBonus();
         demarrerCycleJauge();
-        log('🎮 Partie multijoueur commencée !');
+        console.log('%c🎮 Partie commencée !', 'font-size:18px; color:cyan;');
       }, 1200);
-      
-      compteur--;
     }
   }
   

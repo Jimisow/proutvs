@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>PROUT MANAGER 🚽</title>
+  <title>Prout'VS 💨</title>
   
   <!-- Police rétro -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,9 +14,29 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" defer></script>
   
   <!-- Nos scripts (cache-busting avec timestamp) -->
-  <script src="game.js?ts=4" defer></script>
+  <script src="game.js?ts=6" defer></script>
   <link rel="stylesheet" href="style.css" />
+  <!-- PWA : Manifest & Service Worker -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Prout'VS" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="images/icon-192.svg" />
+  
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💨</text></svg>" />
+  
+  <!-- Enregistrement du Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?ts=1').then(() => {
+          console.log('[SW] Service Worker enregistré');
+        }).catch((err) => {
+          console.warn('[SW] Erreur SW:', err);
+        });
+      });
+    }
+  </script>
 </head>
 <body>
   <!-- ============================================================ -->

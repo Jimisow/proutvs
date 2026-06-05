@@ -1211,23 +1211,27 @@ html, body {
   display: none !important;
 }
 
-/* Chiffre du décompte */
+/* Chiffre du décompte - centré parfaitement */
 .decompte-chiffre {
-  position: absolute;
   font-size: clamp(5rem, 20vw, 10rem);
   font-weight: bold;
   text-shadow: 0 0 60px currentColor, 0 0 120px currentColor;
   animation: decompte-pop 0.6s ease-out;
-  transition: color 0.5s ease;
+  text-align: center;
+  width: 100%;
 }
 
-/* Texte "PRÊT ?" et "LA PARTIE COMMENCE !" */
+/* Texte "PRÊT ?" et "LA PARTIE COMMENCE !" - centré */
 .decompte-texte {
-  position: absolute;
   font-size: clamp(1.2rem, 5vw, 2.5rem);
   color: var(--couleur-dore-clair);
   text-shadow: 0 0 30px rgba(240, 199, 94, 0.6), 0 0 60px rgba(240, 199, 94, 0.3);
   animation: decompte-texte-pulse 1s ease-in-out infinite alternate;
+  text-align: center;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  padding: 0 20px;
 }
 
 @keyframes decompte-pop {

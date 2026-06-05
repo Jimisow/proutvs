@@ -42,10 +42,6 @@ const etat = {
   partieFinie: false,
   victoire: false,      // true si le joueur local a gagné
   enAttenteRematch: false, // true si on attend que l'adversaire accepte de rejouer
-  
-  // +++ Timers pour les expressions faciales +++
-  timerExpressionLocal: null,
-  timerExpressionAdverse: null,
 };
 
 // =================================================================
@@ -67,7 +63,6 @@ function initialiserRefsDOM() {
   DOM.statusMsg = document.getElementById('status-msg');
   DOM.btnCreer = document.getElementById('btn-creer');
   DOM.btnRejoindre = document.getElementById('btn-rejoindre');
-  DOM.btnSoloIA = document.getElementById('btn-solo-ia');
   DOM.btnQuitter = document.getElementById('btn-quitter');
   DOM.btnDebug = document.getElementById('btn-debug');
   DOM.btnProut = document.getElementById('btn-prout');
@@ -104,8 +99,6 @@ function initialiserRefsDOM() {
   DOM.notificationTexte = document.getElementById('notification-texte');
   
   // +++ Personnages +++
-  DOM.personnageLocal = document.getElementById('personnage-local');
-  DOM.personnageAdverse = document.getElementById('personnage-adverse');
   DOM.bulleLocal = document.getElementById('bulle-local');
   DOM.bulleAdverse = document.getElementById('bulle-adverse');
   
@@ -175,15 +168,6 @@ function afficherNotification(texte, duree = 2000) {
 /**
  * Chemins des images des personnages (anciens SVG conservés)
  */
-const EXPRESSIONS = {
-  NORMAL:    'img/personnage-normal.svg',
-  CONTENT:   'img/personnage-content.svg',
-  DEGATS:    'img/personnage-degats.svg',
-  GRAVE:     'img/personnage-grave.svg',
-  MORT:      'img/personnage-mort.svg',
-  ATTAQUE:   'img/personnage-attaque.svg',
-};
-
 // +++ NOUVELLES IMAGES PNG +++
 const IMAGES_PNG = {
   idle:   'images/character_idle.png',
@@ -241,57 +225,16 @@ function jouerSonCompetence(niveau) {
 }
 
 /**
- * Durée de l'expression "spéciale" avant de revenir à NORMAL (en ms)
+ * Durée de l'expression "spéciale" (en ms)
  */
-const DUREE_EXPRESSION_SPECIALE = 1200;
-
-/**
- * Change l'expression d'un personnage avec animation.
- * @param {'local'|'adverse'} cote - De quel côté
- * @param {string} expression - Une clé de EXPRESSIONS
- * @param {boolean} temporaire - Si true, revient à NORMAL après DUREE_EXPRESSION_SPECIALE ms
- */
-function changerExpression(cote, expression, temporaire = true) {
-  const img = cote === 'local' ? DOM.personnageLocal : DOM.personnageAdverse;
-  if (!img) return;
-  
-  const src = EXPRESSIONS[expression];
-  if (!src) {
-    log(`⚠️ Expression inconnue: ${expression}`);
-    return;
-  }
-  
-  // Ajouter une animation de transition
-  img.classList.remove('transition-expression');
-  // Forcer le reflow pour relancer l'animation
-  void img.offsetWidth;
-  img.classList.add('transition-expression');
-  
-  // Changer l'image
-  img.src = src;
-  img.alt = expression;
-  
-  log(`🖼️ Personnage ${cote} → ${expression}`);
-  
-  // Si temporaire, programmer le retour à NORMAL
-  if (temporaire) {
-    // Nettoyer l'ancien timer s'il existe
-    const timerKey = `timerExpression${cote === 'local' ? 'Local' : 'Adverse'}`;
-    if (etat[timerKey]) {
-      clearTimeout(etat[timerKey]);
-    }
-    etat[timerKey] = setTimeout(() => {
-      changerExpression(cote, 'NORMAL', false);
-    }, DUREE_EXPRESSION_SPECIALE);
-  }
-}
 
 /**
  * Secoue le personnage d'un côté (quand il subit des dégâts).
  * @param {'local'|'adverse'} cote 
  */
 function secouerPersonnage(cote) {
-  const img = cote === 'local' ? DOM.personnageLocal : DOM.personnageAdverse;
+  // Secouer le PNG principal (characterImg)
+  const img = document.getElementById('characterImg');
   if (!img) return;
   
   img.classList.remove('shake');
@@ -481,49 +424,14 @@ function tremblerEcran(intensite = 1) {
 }
 
 /**
- * Met à jour l'expression du personnage en fonction de sa conscience.
- * Appelé automatiquement à chaque mise à jour des barres.
- * @param {'local'|'adverse'} cote
- * @param {number} conscience - Le niveau de conscience (0-100)
- */
-function mettreAJourExpressionSelonConscience(cote, conscience) {
-  const img = cote === 'local' ? DOM.personnageLocal : DOM.personnageAdverse;
-  if (!img) return;
-  
-  // Ne pas changer si une animation temporaire est en cours
-  const timerKey = `timerExpression${cote === 'local' ? 'Local' : 'Adverse'}`;
-  if (etat[timerKey]) return;
-  
-  let expression = 'NORMAL';
-  
-  if (conscience <= 0) {
-    expression = 'MORT';
-  } else if (conscience <= 30) {
-    expression = 'GRAVE';
-  } else if (conscience <= 60) {
-    expression = 'DEGATS';
-  }
-  // Au-dessus de 60% => NORMAL
-  
-  changerExpression(cote, expression, false);
-}
-
-/**
  * Met le personnage en état "mort" (définitif).
  * @param {'local'|'adverse'} cote 
  */
 function mettrePersonnageMort(cote) {
-  const img = cote === 'local' ? DOM.personnageLocal : DOM.personnageAdverse;
-  if (!img) return;
-  
-  changerExpression(cote, 'MORT', false);
-  img.classList.add('mort');
-  
-  // +++ Appliquer aussi l'état mort au PNG +++
-  const png = document.getElementById('characterImg');
-  if (png) {
-    png.classList.add('dead');
-    setCharacterImage('idle'); // image neutre mais grisée par le CSS
+  const img = document.getElementById('characterImg');
+  if (img) {
+    img.classList.add('dead');
+    setCharacterImage('idle');
   }
 }
 
@@ -575,10 +483,6 @@ function mettreAJourBarres() {
   DOM.jaugeAdverseText.textContent = Math.round(etat.jaugeAdverse) + '%';
   
   // +++ Mise à jour des expressions faciales +++
-  if (!etat.partieFinie) {
-    mettreAJourExpressionSelonConscience('local', etat.conscience);
-    mettreAJourExpressionSelonConscience('adverse', etat.conscienceAdverse);
-  }
   
   // --- Mise à jour des bonus ---
   mettreAJourBonus();
@@ -618,9 +522,8 @@ function clicProut() {
     etat.jauge += gain;
     log('💨 Clic PROUT ! Jauge: +5% →', etat.jauge + '%');
     
-    // +++ Animation : pet classique PNG + expression SVG +++
+    // +++ Animation : pet classique PNG +++
     animateBasicFart();
-    changerExpression('local', 'CONTENT', true);
     ajouterIconeEvenement('💨', 1200);
     jouerSonBase(); // 🔊 Son aléatoire base1-4
     
@@ -662,7 +565,6 @@ function lancerBonus(idBonus) {
   jouerSonCompetence(skillLevel); // 🔊 Son comp1/2/3 selon niveau
   
   // +++ Animation SVG : personnage local attaque +++
-  changerExpression('local', 'ATTAQUE', true);
   animerAttaque('local');
   ajouterIconeEvenement('💨💥', 2000); // reste affiché durant toute l'animation + un peu
   
@@ -682,12 +584,7 @@ function lancerBonus(idBonus) {
   
   // Changer expression adverse selon les dégâts reçus
   if (etat.conscienceAdverse <= 0) {
-    changerExpression('adverse', 'MORT', false);
     mettrePersonnageMort('adverse');
-  } else if (etat.conscienceAdverse <= 30) {
-    changerExpression('adverse', 'GRAVE', true);
-  } else {
-    changerExpression('adverse', 'DEGATS', true);
   }
   afficherBulle('adverse', '💢', 1200);
   
@@ -744,7 +641,6 @@ function verifierVictoire() {
     
     // +++ Animation de fin +++
     mettrePersonnageMort('adverse');
-    changerExpression('local', 'CONTENT', false);
     afficherBulle('local', '🏆', 3000);
     afficherBulle('adverse', '💀', 3000);
     
@@ -765,7 +661,6 @@ function verifierVictoire() {
     
     // +++ Animation de fin +++
     mettrePersonnageMort('local');
-    changerExpression('adverse', 'CONTENT', false);
     afficherBulle('local', '💀', 3000);
     afficherBulle('adverse', '🏆', 3000);
     
@@ -905,10 +800,13 @@ function initialiserPeer(monId, codeAdverse = null) {
     debug: DEBUG ? 2 : 0,
     config: {
       iceServers: [
-        // Serveur STUN Google (gratuit, fiable)
+        // Serveurs STUN Google
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        // Serveur TURN public (pour traverser les NAT stricts)
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        // Serveur TURN public (pour traverser les NAT stricts en 4G)
         {
           urls: 'turn:openrelay.metered.ca:80',
           username: 'openrelayproject',
@@ -916,6 +814,11 @@ function initialiserPeer(monId, codeAdverse = null) {
         },
         {
           urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject',
+        },
+        {
+          urls: 'turns:openrelay.metered.ca:443',
           username: 'openrelayproject',
           credential: 'openrelayproject',
         },
@@ -932,24 +835,28 @@ function initialiserPeer(monId, codeAdverse = null) {
     if (codeAdverse) {
       // Mode invité : se connecter à l'hôte
       log('🔌 Connexion au pair:', codeAdverse);
+      
+      // Afficher le statut
+      afficherStatus('🔄 Connexion à l\'adversaire...', 'info');
+      
       const conn = peer.connect(codeAdverse, {
         reliable: true,
         serialization: 'json',
       });
       gererConnexion(conn);
       
-      // +++ Timeout : si pas connecté après 15 secondes, annuler +++
+      // +++ Timeout : si pas connecté après 12 secondes, annuler +++
       setTimeout(() => {
         if (!etat.enLigne) {
           logError('⏱️ Timeout connexion PeerJS');
           DOM.overlayChargement.classList.add('masquee');
-          afficherStatus('⏱️ Connexion impossible. Vérifie le code ou la connexion internet.', 'erreur');
+          afficherStatus('⏱️ Connexion impossible. Vérifie le code ou que l\'autre joueur est bien en ligne.', 'erreur');
           if (conn && conn.open === false) {
-            conn.close();
+            try { conn.close(); } catch(e) {}
           }
           etat.mode = null;
         }
-      }, 15000);
+      }, 12000);
     }
   });
   
@@ -1085,12 +992,7 @@ function recevoirMessage(data) {
       tremblerEcran(intShake);
       
       if (etat.conscience <= 0) {
-        changerExpression('local', 'MORT', false);
         mettrePersonnageMort('local');
-      } else if (etat.conscience <= 30) {
-        changerExpression('local', 'GRAVE', true);
-      } else {
-        changerExpression('local', 'DEGATS', true);
       }
       afficherBulle('local', '💢', 1200);
       
@@ -1212,54 +1114,45 @@ function demarrerPartieMulti() {
   setCharacterImage('idle');
   
   // === DÉCOMPTE AVANT LE DÉBUT ===
-  log('⏳ Décompte avant début...');
+  log('⏳ DÉCOMPTE 5 secondes...');
   
-  // Désactiver les boutons pendant le décompte
+  // Désactiver les boutons
   DOM.btnProut.disabled = true;
   Object.values(DOM.bonusBtns).forEach(btn => btn.disabled = true);
   
+  // Créer l'élément de décompte directement dans le body
+  const decoEl = document.createElement('div');
+  decoEl.id = 'decompte-overlay';
+  decoEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:9999;font-family:monospace;font-size:120px;color:#D4A017;text-shadow:0 0 40px rgba(212,160,23,0.8);pointer-events:none;background:rgba(0,0,0,0);';
+  document.body.appendChild(decoEl);
+  
   let compteur = 5;
+  log('⏳ decompte créé, compteur =', compteur);
   
-  // Récupérer ou créer l'élément de décompte
-  let decompteEl = DOM.decompteOverlay;
-  if (!decompteEl) {
-    decompteEl = document.getElementById('decompte-overlay');
-  }
-  if (!decompteEl) {
-    decompteEl = document.createElement('div');
-    decompteEl.id = 'decompte-overlay';
-    decompteEl.className = 'decompte-overlay';
-    document.getElementById('screen-jeu').appendChild(decompteEl);
-    DOM.decompteOverlay = decompteEl;
-  }
-  
-  log('⏳ decompteEl trouvé :', !!decompteEl);
-  decompteEl.classList.remove('masquee');
-  
-  const tick = () => {
+  function tickDecompte() {
     if (compteur > 0) {
-      decompteEl.textContent = compteur;
-      log('⏳', compteur);
+      decoEl.textContent = compteur;
+      log('⏳ decompte:', compteur);
       compteur--;
-      setTimeout(tick, 1000);
+      setTimeout(tickDecompte, 1000);
     } else if (compteur === 0) {
-      decompteEl.textContent = 'LA PARTIE COMMENCE !';
-      log('🎮 LA PARTIE COMMENCE !');
+      decoEl.textContent = 'LA PARTIE COMMENCE !';
+      decoEl.style.fontSize = '60px';
+      log('⏳ LA PARTIE COMMENCE !');
       
-      // Après 1 seconde, cacher l'overlay et activer les boutons
       setTimeout(() => {
-        decompteEl.classList.add('masquee');
+        decoEl.remove();
         DOM.btnProut.disabled = false;
-        mettreAJourBonus(); // réactive les bonus selon jauge
+        mettreAJourBonus();
         demarrerCycleJauge();
         log('🎮 Partie multijoueur commencée !');
-      }, 1000);
+      }, 1200);
       
       compteur--;
     }
-  };
+  }
   
-  tick();
+  tickDecompte();
 }
 
 // =================================================================
@@ -1281,12 +1174,6 @@ function quitterPartie() {
   
   // Arrêter tout
   arreterCyclesJauge();
-  
-  // +++ Nettoyer les timers d'expressions +++
-  if (etat.timerExpressionLocal) clearTimeout(etat.timerExpressionLocal);
-  if (etat.timerExpressionAdverse) clearTimeout(etat.timerExpressionAdverse);
-  etat.timerExpressionLocal = null;
-  etat.timerExpressionAdverse = null;
   
   // Fermer connexion PeerJS
   if (etat.connexion) {
@@ -1346,7 +1233,6 @@ function basculerDebug() {
   console.log('Victoire:', etat.victoire);
   console.log('Code partie:', etat.codePartie);
   console.log('PeerJS connecté:', !!etat.connexion);
-  console.log('Bot actif:', !!etat.bot);
   console.log('=====================');
 }
 
